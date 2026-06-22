@@ -15,6 +15,9 @@ dev:
 test-watch:
   watchexec -e go,tmpl,sql just test
 
+e2e:
+  hurl -v test/e2e
+
 sqlfluff-fix:
   sqlfluff fix ./internal/database/**/*.sql
 

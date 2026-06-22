@@ -9,7 +9,7 @@ import (
 
 func Layout(children ...g.Node) g.Node {
 	return c.HTML5(c.HTML5Props{
-		Title:    "Planner",
+		Title:    "Workout",
 		Language: "en",
 		Head: []g.Node{
 			h.Script(
