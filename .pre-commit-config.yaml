@@ -1,0 +1,43 @@
+---
+.go: &go
+  language: system
+  types: [go]
+  pass_filenames: false
+  args: ['./...']
+
+repos:
+  - repo: local
+    hooks:
+      - <<: *go
+        id: go-vet
+        name: go vet
+        entry: go vet
+
+      - <<: *go
+        id: go-build
+        name: go build
+        entry: go build
+
+      - <<: *go
+        id: go-fmt
+        name: go fmt
+        entry: go fmt
+
+      - <<: *go
+        id: go-test
+        name: go test
+        entry: go test
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 4.2.2
+    hooks:
+      - id: sqlfluff-lint
+      - id: sqlfluff-fix
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-yaml

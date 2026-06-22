@@ -1,0 +1,7 @@
+[sqlfluff]
+dialect = sqlite
+exclude_rules = AM04
+
+[sqlfluff:indentation]
+indent_unit = space
+tab_space_size = 2
