@@ -15,6 +15,7 @@ type App struct {
 	decoder   *schema.Decoder
 	validator *validator.Validate
 	home      *HomeHandler
+	workouts  *WorkoutsHandler
 }
 
 func New(db *sql.DB) *App {
@@ -23,6 +24,7 @@ func New(db *sql.DB) *App {
 		decoder:   schema.NewDecoder(),
 		validator: validator.New(),
 		home:      NewHomeHandler(),
+		workouts:  NewWorkoutsHandler(),
 	}
 }
 
@@ -30,6 +32,7 @@ func (a *App) Routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Files))))
 
+	mux.Handle("/workouts/", http.StripPrefix("/workouts", a.workouts.Routes()))
 	mux.Handle("/", a.home.Routes())
 
 	return mux
