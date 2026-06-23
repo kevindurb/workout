@@ -50,6 +50,16 @@ func (h *SessionsHandler) Routes() http.Handler {
 func (h *SessionsHandler) showLogin(w http.ResponseWriter, r *http.Request) (Node, error) {
 	return Layout(
 		H1(Text("Login")),
+		Form(
+			Method("POST"),
+			Action("/login"),
+			Label(For("email"), Text("Email")),
+			Input(Type("email"), ID("email"), Name("email")),
+			Label(For("password"), Text("Password")),
+			Input(Type("password"), ID("password"), Name("password")),
+			Button(Type("submit"), Text("Login")),
+			A(Href("/signup"), Text("Signup")),
+		),
 	), nil
 }
 
@@ -79,6 +89,16 @@ func (h *SessionsHandler) login(w http.ResponseWriter, r *http.Request) {
 func (h *SessionsHandler) showSignup(w http.ResponseWriter, r *http.Request) (Node, error) {
 	return Layout(
 		H1(Text("Signup")),
+		Form(
+			Method("POST"),
+			Action("/signup"),
+			Label(For("email"), Text("Email")),
+			Input(Type("email"), ID("email"), Name("email")),
+			Label(For("password"), Text("Password")),
+			Input(Type("password"), ID("password"), Name("password")),
+			Button(Type("submit"), Text("Signup")),
+			A(Href("/login"), Text("Login")),
+		),
 	), nil
 }
 
