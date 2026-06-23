@@ -63,6 +63,22 @@ func (h *SessionsHandler) showLogin(w http.ResponseWriter, r *http.Request) (Nod
 	), nil
 }
 
+func (h *SessionsHandler) showSignup(w http.ResponseWriter, r *http.Request) (Node, error) {
+	return Layout(
+		H1(Text("Signup")),
+		Form(
+			Method("POST"),
+			Action("/signup"),
+			Label(For("email"), Text("Email")),
+			Input(Type("email"), ID("email"), Name("email")),
+			Label(For("password"), Text("Password")),
+			Input(Type("password"), ID("password"), Name("password")),
+			Button(Type("submit"), Text("Signup")),
+			A(Href("/login"), Text("Login")),
+		),
+	), nil
+}
+
 func (h *SessionsHandler) login(w http.ResponseWriter, r *http.Request) {
 	var data credsBody
 	if err := h.fp.Parse(&data, r); err != nil {
@@ -84,22 +100,6 @@ func (h *SessionsHandler) login(w http.ResponseWriter, r *http.Request) {
 	h.SetUserID(r.Context(), user.ID)
 
 	http.Redirect(w, r, "/", http.StatusFound)
-}
-
-func (h *SessionsHandler) showSignup(w http.ResponseWriter, r *http.Request) (Node, error) {
-	return Layout(
-		H1(Text("Signup")),
-		Form(
-			Method("POST"),
-			Action("/signup"),
-			Label(For("email"), Text("Email")),
-			Input(Type("email"), ID("email"), Name("email")),
-			Label(For("password"), Text("Password")),
-			Input(Type("password"), ID("password"), Name("password")),
-			Button(Type("submit"), Text("Signup")),
-			A(Href("/login"), Text("Login")),
-		),
-	), nil
 }
 
 func (h *SessionsHandler) signup(w http.ResponseWriter, r *http.Request) {
