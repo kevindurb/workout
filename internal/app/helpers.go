@@ -3,6 +3,7 @@ package app
 import (
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func (a *App) decodeAndValidateForm(dst any, r *http.Request) error {
@@ -22,4 +23,8 @@ func (a *App) decodeAndValidateForm(dst any, r *http.Request) error {
 	}
 
 	return nil
+}
+
+func pathInt(r *http.Request, name string) (int64, error) {
+	return strconv.ParseInt(r.PathValue(name), 10, 64)
 }

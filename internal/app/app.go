@@ -7,24 +7,32 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/schema"
 
+	"github.com/kevindurb/planner/internal/db"
 	"github.com/kevindurb/planner/static"
 )
 
 type App struct {
 	DB        *sql.DB
+	queries   *db.Queries
 	decoder   *schema.Decoder
 	validator *validator.Validate
 	home      *HomeHandler
 	workouts  *WorkoutsHandler
+	exercises *ExercisesHandler
+	entries   *EntriesHandler
 }
 
-func New(db *sql.DB) *App {
+func New(conn *sql.DB) *App {
+	q := db.New(conn)
 	return &App{
-		DB:        db,
+		DB:        conn,
+		queries:   q,
 		decoder:   schema.NewDecoder(),
 		validator: validator.New(),
 		home:      NewHomeHandler(),
-		workouts:  NewWorkoutsHandler(),
+		workouts:  NewWorkoutsHandler(q),
+		exercises: NewExercisesHandler(q),
+		entries:   NewEntriesHandler(q),
 	}
 }
 

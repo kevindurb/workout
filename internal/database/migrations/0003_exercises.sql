@@ -6,5 +6,14 @@ CREATE TABLE IF NOT EXISTS exercises (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS workout_exercises (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  workout_id INTEGER NOT NULL REFERENCES workouts(id),
+  exercise_id INTEGER NOT NULL REFERENCES exercises(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- +goose down
 DROP TABLE IF EXISTS exercises;
+DROP TABLE IF EXISTS workout_exercises;
