@@ -27,7 +27,8 @@ func (h *HomeHandler) Routes() http.Handler {
 
 func (h *HomeHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
 	return Layout(
-		H1(Text("Workout")),
+		H1(Text("Home")),
 		A(Href("/workouts/new"), Text("New Workout")),
+		A(Href("/exercises/new"), Text("New Exercise")),
 	), nil
 }
