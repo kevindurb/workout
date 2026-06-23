@@ -4,9 +4,11 @@ go 1.26.3
 
 require (
 	github.com/alexedwards/scs/v2 v2.9.0
+	github.com/go-playground/form v3.1.4+incompatible
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/gorilla/schema v1.4.1
 	github.com/pressly/goose/v3 v3.27.1
+	golang.org/x/crypto v0.52.0
 	maragu.dev/gomponents v1.3.0
 	maragu.dev/gomponents-htmx v0.6.1
 	modernc.org/sqlite v1.49.1
@@ -25,10 +27,10 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.52.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
+	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	modernc.org/libc v1.72.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect

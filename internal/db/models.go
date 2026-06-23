@@ -23,6 +23,14 @@ type Exercise struct {
 	UpdatedAt sql.NullTime
 }
 
+type User struct {
+	ID        int64
+	Email     string
+	Hash      []byte
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
 type Workout struct {
 	ID        int64
 	Name      string
