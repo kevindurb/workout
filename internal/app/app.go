@@ -20,6 +20,7 @@ type App struct {
 	workouts  *WorkoutsHandler
 	exercises *ExercisesHandler
 	entries   *EntriesHandler
+	sessions  *SessionsHandler
 }
 
 func New(conn *sql.DB) *App {
@@ -33,6 +34,7 @@ func New(conn *sql.DB) *App {
 		workouts:  NewWorkoutsHandler(q),
 		exercises: NewExercisesHandler(q),
 		entries:   NewEntriesHandler(q),
+		sessions:  NewSessionsHandler(q),
 	}
 }
 
@@ -40,8 +42,18 @@ func (a *App) Routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Files))))
 
-	mux.Handle("/workouts/", http.StripPrefix("/workouts", a.workouts.Routes()))
+	handleAndStrip(mux, "/workouts", a.sessions.RequireAuth(a.workouts.Routes()))
+	handleAndStrip(mux, "/exercises", a.sessions.RequireAuth(a.exercises.Routes()))
+	handleAndStrip(mux, "/entries", a.sessions.RequireAuth(a.entries.Routes()))
+
+	mux.Handle("/login", a.sessions.Routes())
+	mux.Handle("/signup", a.sessions.Routes())
 	mux.Handle("/", a.home.Routes())
 
-	return mux
+	return a.sessions.sm.LoadAndSave(mux)
+}
+
+func handleAndStrip(mux *http.ServeMux, pattern string, h http.Handler) {
+	mux.Handle(pattern+"/", http.StripPrefix(pattern, h))
+	mux.Handle(pattern, http.RedirectHandler(pattern+"/", http.StatusMovedPermanently))
 }

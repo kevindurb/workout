@@ -3,6 +3,7 @@ module github.com/kevindurb/planner
 go 1.26.3
 
 require (
+	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/gorilla/schema v1.4.1
 	github.com/pressly/goose/v3 v3.27.1
