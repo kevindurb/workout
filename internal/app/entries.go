@@ -13,12 +13,7 @@ import (
 
 type EntriesHandler struct {
 	queries *db.Queries
-}
-
-func NewEntriesHandler(queries *db.Queries) *EntriesHandler {
-	return &EntriesHandler{
-		queries: queries,
-	}
+	sm      *SessionManager
 }
 
 func (h *EntriesHandler) Routes() http.Handler {
@@ -47,7 +42,7 @@ func (h *EntriesHandler) show(w http.ResponseWriter, r *http.Request) (Node, err
 }
 
 func (h *EntriesHandler) list(w http.ResponseWriter, r *http.Request) (Node, error) {
-	entries, _ := h.queries.ListAllEntries(r.Context(), 0)
+	entries, _ := h.queries.ListAllEntries(r.Context(), h.sm.UserID(r.Context()))
 	return Layout(
 		H1(Text("Entries")),
 		Map(entries, func(entry db.Entry) Node {

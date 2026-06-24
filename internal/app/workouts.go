@@ -13,12 +13,7 @@ import (
 
 type WorkoutsHandler struct {
 	queries *db.Queries
-}
-
-func NewWorkoutsHandler(queries *db.Queries) *WorkoutsHandler {
-	return &WorkoutsHandler{
-		queries: queries,
-	}
+	sm      *SessionManager
 }
 
 func (h *WorkoutsHandler) Routes() http.Handler {
@@ -47,7 +42,7 @@ func (h *WorkoutsHandler) show(w http.ResponseWriter, r *http.Request) (Node, er
 }
 
 func (h *WorkoutsHandler) list(w http.ResponseWriter, r *http.Request) (Node, error) {
-	workouts, _ := h.queries.ListAllWorkouts(r.Context(), 0)
+	workouts, _ := h.queries.ListAllWorkouts(r.Context(), h.sm.UserID(r.Context()))
 	return Layout(
 		H1(Text("Workouts")),
 		Map(workouts, func(workout db.Workout) Node {

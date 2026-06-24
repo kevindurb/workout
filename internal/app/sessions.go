@@ -25,14 +25,6 @@ type SessionsHandler struct {
 	fp      *formparser.FormParser
 }
 
-func NewSessionsHandler(queries *db.Queries, sm *SessionManager, fp *formparser.FormParser) *SessionsHandler {
-	return &SessionsHandler{
-		queries: queries,
-		sm:      sm,
-		fp:      fp,
-	}
-}
-
 func (h *SessionsHandler) Routes() http.Handler {
 	mux := http.NewServeMux()
 

@@ -13,10 +13,6 @@ import (
 type HomeHandler struct {
 }
 
-func NewHomeHandler() *HomeHandler {
-	return &HomeHandler{}
-}
-
 func (h *HomeHandler) Routes() http.Handler {
 	mux := http.NewServeMux()
 
