@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 	. "github.com/kevindurb/planner/internal/html"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/alexedwards/scs/sqlite3store"
 	"github.com/alexedwards/scs/v2"
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
@@ -27,8 +29,9 @@ type SessionsHandler struct {
 	fp      *formparser.FormParser
 }
 
-func NewSessionsHandler(queries *db.Queries, fp *formparser.FormParser) *SessionsHandler {
+func NewSessionsHandler(conn *sql.DB, queries *db.Queries, fp *formparser.FormParser) *SessionsHandler {
 	sm := scs.New()
+	sm.Store = sqlite3store.New(conn)
 	return &SessionsHandler{
 		queries: queries,
 		sm:      sm,

@@ -31,7 +31,7 @@ func New(conn *sql.DB) *App {
 		workouts:  NewWorkoutsHandler(q),
 		exercises: NewExercisesHandler(q),
 		entries:   NewEntriesHandler(q),
-		sessions:  NewSessionsHandler(q, fp),
+		sessions:  NewSessionsHandler(conn, q, fp),
 	}
 }
 

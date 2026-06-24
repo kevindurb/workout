@@ -1,5 +1,5 @@
 -- +goose up
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT NOT NULL,
   hash BLOB NOT NULL,
@@ -8,4 +8,4 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- +goose down
-DROP TABLE IF EXISTS users;
+DROP TABLE users;

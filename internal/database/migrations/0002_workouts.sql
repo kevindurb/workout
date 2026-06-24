@@ -1,5 +1,5 @@
 -- +goose up
-CREATE TABLE IF NOT EXISTS workouts (
+CREATE TABLE workouts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL REFERENCES users(id),
   name TEXT NOT NULL,
@@ -8,4 +8,4 @@ CREATE TABLE IF NOT EXISTS workouts (
 );
 
 -- +goose down
-DROP TABLE IF EXISTS workouts;
+DROP TABLE workouts;

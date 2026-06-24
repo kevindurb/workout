@@ -1,5 +1,5 @@
 -- +goose up
-CREATE TABLE IF NOT EXISTS exercises (
+CREATE TABLE exercises (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL REFERENCES users(id),
   name TEXT NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS exercises (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS workout_exercises (
+CREATE TABLE workout_exercises (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL REFERENCES users(id),
   workout_id INTEGER NOT NULL REFERENCES workouts(id),
@@ -17,5 +17,5 @@ CREATE TABLE IF NOT EXISTS workout_exercises (
 );
 
 -- +goose down
-DROP TABLE IF EXISTS exercises;
-DROP TABLE IF EXISTS workout_exercises;
+DROP TABLE exercises;
+DROP TABLE workout_exercises;
