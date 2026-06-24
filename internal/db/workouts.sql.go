@@ -11,13 +11,19 @@ import (
 
 const createWorkout = `-- name: CreateWorkout :one
 INSERT INTO workouts (
+  user_id,
   name
-) VALUES (?)
+) VALUES (?, ?)
 RETURNING id, user_id, name, created_at, updated_at
 `
 
-func (q *Queries) CreateWorkout(ctx context.Context, name string) (Workout, error) {
-	row := q.db.QueryRowContext(ctx, createWorkout, name)
+type CreateWorkoutParams struct {
+	UserID int64
+	Name   string
+}
+
+func (q *Queries) CreateWorkout(ctx context.Context, arg CreateWorkoutParams) (Workout, error) {
+	row := q.db.QueryRowContext(ctx, createWorkout, arg.UserID, arg.Name)
 	var i Workout
 	err := row.Scan(
 		&i.ID,
@@ -61,10 +67,11 @@ func (q *Queries) GetWorkoutByID(ctx context.Context, id int64) (Workout, error)
 const listAllWorkouts = `-- name: ListAllWorkouts :many
 SELECT id, user_id, name, created_at, updated_at
 FROM workouts
+WHERE user_id = ?
 `
 
-func (q *Queries) ListAllWorkouts(ctx context.Context) ([]Workout, error) {
-	rows, err := q.db.QueryContext(ctx, listAllWorkouts)
+func (q *Queries) ListAllWorkouts(ctx context.Context, userID int64) ([]Workout, error) {
+	rows, err := q.db.QueryContext(ctx, listAllWorkouts, userID)
 	if err != nil {
 		return nil, err
 	}

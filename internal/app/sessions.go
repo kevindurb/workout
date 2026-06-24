@@ -1,8 +1,6 @@
 package app
 
 import (
-	"context"
-	"database/sql"
 	"log"
 	"net/http"
 
@@ -11,8 +9,6 @@ import (
 	. "github.com/kevindurb/planner/internal/html"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/alexedwards/scs/sqlite3store"
-	"github.com/alexedwards/scs/v2"
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
 	ghttp "maragu.dev/gomponents/http"
@@ -25,13 +21,11 @@ type credsBody struct {
 
 type SessionsHandler struct {
 	queries *db.Queries
-	sm      *scs.SessionManager
+	sm      *SessionManager
 	fp      *formparser.FormParser
 }
 
-func NewSessionsHandler(conn *sql.DB, queries *db.Queries, fp *formparser.FormParser) *SessionsHandler {
-	sm := scs.New()
-	sm.Store = sqlite3store.New(conn)
+func NewSessionsHandler(queries *db.Queries, sm *SessionManager, fp *formparser.FormParser) *SessionsHandler {
 	return &SessionsHandler{
 		queries: queries,
 		sm:      sm,
@@ -100,7 +94,7 @@ func (h *SessionsHandler) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.SetUserID(r.Context(), user.ID)
+	h.sm.SetUserID(r.Context(), user.ID)
 
 	http.Redirect(w, r, "/", http.StatusFound)
 }
@@ -130,26 +124,4 @@ func (h *SessionsHandler) signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/login", http.StatusFound)
-}
-
-func (h *SessionsHandler) SetUserID(ctx context.Context, id int64) {
-	h.sm.Put(ctx, "user_id", id)
-}
-
-func (h *SessionsHandler) UserID(ctx context.Context) int64 {
-	return h.sm.GetInt64(ctx, "user_id")
-}
-
-func (h *SessionsHandler) IsLoggedIn(ctx context.Context) bool {
-	return h.UserID(ctx) != 0
-}
-
-func (h *SessionsHandler) RequireAuth(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !h.IsLoggedIn(r.Context()) {
-			http.Redirect(w, r, "/login", http.StatusFound)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
 }

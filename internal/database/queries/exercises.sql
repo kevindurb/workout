@@ -1,6 +1,7 @@
 -- name: ListAllExercises :many
 SELECT *
-FROM exercises;
+FROM exercises
+WHERE user_id = ?;
 
 -- name: GetExerciseByID :one
 SELECT *
@@ -9,8 +10,9 @@ WHERE id = ?;
 
 -- name: CreateExercise :one
 INSERT INTO exercises (
+  user_id,
   name
-) VALUES (?)
+) VALUES (?, ?)
 RETURNING *;
 
 -- name: UpdateExercise :one

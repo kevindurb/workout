@@ -25,6 +25,12 @@ type Exercise struct {
 	UpdatedAt sql.NullTime
 }
 
+type Session struct {
+	Token  string
+	Data   []byte
+	Expiry float64
+}
+
 type User struct {
 	ID        int64
 	Email     string

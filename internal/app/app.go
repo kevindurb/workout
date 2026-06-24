@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/alexedwards/scs/sqlite3store"
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	"github.com/kevindurb/planner/static"
@@ -11,6 +12,7 @@ import (
 
 type App struct {
 	DB        *sql.DB
+	sm        *SessionManager
 	fp        *formparser.FormParser
 	queries   *db.Queries
 	home      *HomeHandler
@@ -23,15 +25,18 @@ type App struct {
 func New(conn *sql.DB) *App {
 	q := db.New(conn)
 	fp := formparser.New()
+	sm := NewSessionManager()
+	sm.Store = sqlite3store.New(conn)
 	return &App{
 		DB:        conn,
+		sm:        sm,
 		fp:        fp,
 		queries:   q,
 		home:      NewHomeHandler(),
 		workouts:  NewWorkoutsHandler(q),
 		exercises: NewExercisesHandler(q),
 		entries:   NewEntriesHandler(q),
-		sessions:  NewSessionsHandler(conn, q, fp),
+		sessions:  NewSessionsHandler(q, sm, fp),
 	}
 }
 
@@ -39,15 +44,15 @@ func (a *App) Routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Files))))
 
-	handleAndStrip(mux, "/workouts", a.sessions.RequireAuth(a.workouts.Routes()))
-	handleAndStrip(mux, "/exercises", a.sessions.RequireAuth(a.exercises.Routes()))
-	handleAndStrip(mux, "/entries", a.sessions.RequireAuth(a.entries.Routes()))
+	handleAndStrip(mux, "/workouts", a.sm.RequireAuth(a.workouts.Routes()))
+	handleAndStrip(mux, "/exercises", a.sm.RequireAuth(a.exercises.Routes()))
+	handleAndStrip(mux, "/entries", a.sm.RequireAuth(a.entries.Routes()))
 
 	mux.Handle("/login", a.sessions.Routes())
 	mux.Handle("/signup", a.sessions.Routes())
-	mux.Handle("/", a.sessions.RequireAuth(a.home.Routes()))
+	mux.Handle("/", a.sm.RequireAuth(a.home.Routes()))
 
-	return a.sessions.sm.LoadAndSave(mux)
+	return a.sm.LoadAndSave(mux)
 }
 
 func handleAndStrip(mux *http.ServeMux, pattern string, h http.Handler) {

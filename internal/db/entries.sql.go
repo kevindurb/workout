@@ -11,13 +11,21 @@ import (
 
 const createEntry = `-- name: CreateEntry :one
 INSERT INTO entries (
+  user_id,
+  workout_id,
   name
-) VALUES (?)
+) VALUES (?, ?, ?)
 RETURNING id, user_id, workout_id, name, created_at, updated_at
 `
 
-func (q *Queries) CreateEntry(ctx context.Context, name string) (Entry, error) {
-	row := q.db.QueryRowContext(ctx, createEntry, name)
+type CreateEntryParams struct {
+	UserID    int64
+	WorkoutID int64
+	Name      string
+}
+
+func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error) {
+	row := q.db.QueryRowContext(ctx, createEntry, arg.UserID, arg.WorkoutID, arg.Name)
 	var i Entry
 	err := row.Scan(
 		&i.ID,
@@ -63,10 +71,11 @@ func (q *Queries) GetEntryByID(ctx context.Context, id int64) (Entry, error) {
 const listAllEntries = `-- name: ListAllEntries :many
 SELECT id, user_id, workout_id, name, created_at, updated_at
 FROM entries
+WHERE user_id = ?
 `
 
-func (q *Queries) ListAllEntries(ctx context.Context) ([]Entry, error) {
-	rows, err := q.db.QueryContext(ctx, listAllEntries)
+func (q *Queries) ListAllEntries(ctx context.Context, userID int64) ([]Entry, error) {
+	rows, err := q.db.QueryContext(ctx, listAllEntries, userID)
 	if err != nil {
 		return nil, err
 	}

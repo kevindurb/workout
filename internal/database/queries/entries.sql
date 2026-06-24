@@ -1,6 +1,7 @@
 -- name: ListAllEntries :many
 SELECT *
-FROM entries;
+FROM entries
+WHERE user_id = ?;
 
 -- name: GetEntryByID :one
 SELECT *
@@ -9,8 +10,10 @@ WHERE id = ?;
 
 -- name: CreateEntry :one
 INSERT INTO entries (
+  user_id,
+  workout_id,
   name
-) VALUES (?)
+) VALUES (?, ?, ?)
 RETURNING *;
 
 -- name: UpdateEntry :one

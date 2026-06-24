@@ -47,7 +47,7 @@ func (h *EntriesHandler) show(w http.ResponseWriter, r *http.Request) (Node, err
 }
 
 func (h *EntriesHandler) list(w http.ResponseWriter, r *http.Request) (Node, error) {
-	entries, _ := h.queries.ListAllEntries(r.Context())
+	entries, _ := h.queries.ListAllEntries(r.Context(), 0)
 	return Layout(
 		H1(Text("Entries")),
 		Map(entries, func(entry db.Entry) Node {

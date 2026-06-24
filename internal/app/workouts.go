@@ -47,7 +47,7 @@ func (h *WorkoutsHandler) show(w http.ResponseWriter, r *http.Request) (Node, er
 }
 
 func (h *WorkoutsHandler) list(w http.ResponseWriter, r *http.Request) (Node, error) {
-	workouts, _ := h.queries.ListAllWorkouts(r.Context())
+	workouts, _ := h.queries.ListAllWorkouts(r.Context(), 0)
 	return Layout(
 		H1(Text("Workouts")),
 		Map(workouts, func(workout db.Workout) Node {
