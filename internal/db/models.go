@@ -10,14 +10,16 @@ import (
 
 type Entry struct {
 	ID        int64
-	Name      string
+	UserID    int64
 	WorkoutID int64
+	Name      string
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
 }
 
 type Exercise struct {
 	ID        int64
+	UserID    int64
 	Name      string
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
@@ -33,6 +35,7 @@ type User struct {
 
 type Workout struct {
 	ID        int64
+	UserID    int64
 	Name      string
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
@@ -40,6 +43,7 @@ type Workout struct {
 
 type WorkoutExercise struct {
 	ID         int64
+	UserID     int64
 	WorkoutID  int64
 	ExerciseID int64
 	CreatedAt  sql.NullTime

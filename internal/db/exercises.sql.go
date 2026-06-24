@@ -13,7 +13,7 @@ const createExercise = `-- name: CreateExercise :one
 INSERT INTO exercises (
   name
 ) VALUES (?)
-RETURNING id, name, created_at, updated_at
+RETURNING id, user_id, name, created_at, updated_at
 `
 
 func (q *Queries) CreateExercise(ctx context.Context, name string) (Exercise, error) {
@@ -21,6 +21,7 @@ func (q *Queries) CreateExercise(ctx context.Context, name string) (Exercise, er
 	var i Exercise
 	err := row.Scan(
 		&i.ID,
+		&i.UserID,
 		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -39,7 +40,7 @@ func (q *Queries) DeleteExerciseByID(ctx context.Context, id int64) error {
 }
 
 const getExerciseByID = `-- name: GetExerciseByID :one
-SELECT id, name, created_at, updated_at
+SELECT id, user_id, name, created_at, updated_at
 FROM exercises
 WHERE id = ?
 `
@@ -49,6 +50,7 @@ func (q *Queries) GetExerciseByID(ctx context.Context, id int64) (Exercise, erro
 	var i Exercise
 	err := row.Scan(
 		&i.ID,
+		&i.UserID,
 		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -57,7 +59,7 @@ func (q *Queries) GetExerciseByID(ctx context.Context, id int64) (Exercise, erro
 }
 
 const listAllExercises = `-- name: ListAllExercises :many
-SELECT id, name, created_at, updated_at
+SELECT id, user_id, name, created_at, updated_at
 FROM exercises
 `
 
@@ -72,6 +74,7 @@ func (q *Queries) ListAllExercises(ctx context.Context) ([]Exercise, error) {
 		var i Exercise
 		if err := rows.Scan(
 			&i.ID,
+			&i.UserID,
 			&i.Name,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -93,7 +96,7 @@ const updateExercise = `-- name: UpdateExercise :one
 UPDATE exercises
 SET name = ?
 WHERE id = ?
-RETURNING id, name, created_at, updated_at
+RETURNING id, user_id, name, created_at, updated_at
 `
 
 type UpdateExerciseParams struct {
@@ -106,6 +109,7 @@ func (q *Queries) UpdateExercise(ctx context.Context, arg UpdateExerciseParams) 
 	var i Exercise
 	err := row.Scan(
 		&i.ID,
+		&i.UserID,
 		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,

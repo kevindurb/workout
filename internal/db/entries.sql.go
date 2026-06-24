@@ -13,7 +13,7 @@ const createEntry = `-- name: CreateEntry :one
 INSERT INTO entries (
   name
 ) VALUES (?)
-RETURNING id, name, workout_id, created_at, updated_at
+RETURNING id, user_id, workout_id, name, created_at, updated_at
 `
 
 func (q *Queries) CreateEntry(ctx context.Context, name string) (Entry, error) {
@@ -21,8 +21,9 @@ func (q *Queries) CreateEntry(ctx context.Context, name string) (Entry, error) {
 	var i Entry
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
+		&i.UserID,
 		&i.WorkoutID,
+		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -40,7 +41,7 @@ func (q *Queries) DeleteEntryByID(ctx context.Context, id int64) error {
 }
 
 const getEntryByID = `-- name: GetEntryByID :one
-SELECT id, name, workout_id, created_at, updated_at
+SELECT id, user_id, workout_id, name, created_at, updated_at
 FROM entries
 WHERE id = ?
 `
@@ -50,8 +51,9 @@ func (q *Queries) GetEntryByID(ctx context.Context, id int64) (Entry, error) {
 	var i Entry
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
+		&i.UserID,
 		&i.WorkoutID,
+		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -59,7 +61,7 @@ func (q *Queries) GetEntryByID(ctx context.Context, id int64) (Entry, error) {
 }
 
 const listAllEntries = `-- name: ListAllEntries :many
-SELECT id, name, workout_id, created_at, updated_at
+SELECT id, user_id, workout_id, name, created_at, updated_at
 FROM entries
 `
 
@@ -74,8 +76,9 @@ func (q *Queries) ListAllEntries(ctx context.Context) ([]Entry, error) {
 		var i Entry
 		if err := rows.Scan(
 			&i.ID,
-			&i.Name,
+			&i.UserID,
 			&i.WorkoutID,
+			&i.Name,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -96,7 +99,7 @@ const updateEntry = `-- name: UpdateEntry :one
 UPDATE entries
 SET name = ?
 WHERE id = ?
-RETURNING id, name, workout_id, created_at, updated_at
+RETURNING id, user_id, workout_id, name, created_at, updated_at
 `
 
 type UpdateEntryParams struct {
@@ -109,8 +112,9 @@ func (q *Queries) UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry
 	var i Entry
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
+		&i.UserID,
 		&i.WorkoutID,
+		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

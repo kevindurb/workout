@@ -11,7 +11,12 @@ import (
 )
 
 func main() {
-	db, err := sql.Open("sqlite", "database.db")
+	db, err := sql.Open("sqlite", "database.db?"+
+		"_pragma=journal_mode(WAL)"+
+		"&_pragma=foreign_keys(ON)"+
+		"&_pragma=busy_timeout(5000)"+
+		"&_pragma=synchronous(NORMAL)",
+	)
 	if err != nil {
 		log.Fatalf("Error connecting to db: %v", err)
 	}
