@@ -11,15 +11,16 @@ import (
 )
 
 type App struct {
-	DB        *sql.DB
-	sm        *SessionManager
-	fp        *formparser.FormParser
-	queries   *db.Queries
-	home      *HomeHandler
-	workouts  *WorkoutsHandler
-	exercises *ExercisesHandler
-	entries   *EntriesHandler
-	sessions  *SessionsHandler
+	DB                *sql.DB
+	sm                *SessionManager
+	fp                *formparser.FormParser
+	queries           *db.Queries
+	home              *HomeHandler
+	workouts          *WorkoutsHandler
+	exercises         *ExercisesHandler
+	entries           *EntriesHandler
+	sessions          *SessionsHandler
+	workoutsExercises *WorkoutsExercisesHandler
 }
 
 func New(conn *sql.DB) *App {
@@ -28,15 +29,16 @@ func New(conn *sql.DB) *App {
 	sm := NewSessionManager()
 	sm.Store = sqlite3store.New(conn)
 	return &App{
-		DB:        conn,
-		sm:        sm,
-		fp:        fp,
-		queries:   q,
-		home:      &HomeHandler{},
-		workouts:  &WorkoutsHandler{q, sm, fp},
-		exercises: &ExercisesHandler{q, sm, fp},
-		entries:   &EntriesHandler{q, sm},
-		sessions:  &SessionsHandler{q, sm, fp},
+		DB:                conn,
+		sm:                sm,
+		fp:                fp,
+		queries:           q,
+		home:              &HomeHandler{},
+		workouts:          &WorkoutsHandler{q, sm, fp},
+		exercises:         &ExercisesHandler{q, sm, fp},
+		entries:           &EntriesHandler{q, sm},
+		sessions:          &SessionsHandler{q, sm, fp},
+		workoutsExercises: &WorkoutsExercisesHandler{q, sm, fp},
 	}
 }
 
@@ -44,18 +46,12 @@ func (a *App) Routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Files))))
 
-	handleAndStrip(mux, "/workouts", a.sm.RequireAuth(a.workouts.Routes()))
-	handleAndStrip(mux, "/exercises", a.sm.RequireAuth(a.exercises.Routes()))
-	handleAndStrip(mux, "/entries", a.sm.RequireAuth(a.entries.Routes()))
-
-	mux.Handle("/login", a.sessions.Routes())
-	mux.Handle("/signup", a.sessions.Routes())
-	mux.Handle("/", a.sm.RequireAuth(a.home.Routes()))
+	a.sessions.Routes(mux)
+	a.workouts.Routes(mux)
+	a.exercises.Routes(mux)
+	a.workoutsExercises.Routes(mux)
+	a.entries.Routes(mux)
+	a.home.Routes(mux)
 
 	return a.sm.LoadAndSave(mux)
-}
-
-func handleAndStrip(mux *http.ServeMux, pattern string, h http.Handler) {
-	mux.Handle(pattern+"/", http.StripPrefix(pattern, h))
-	mux.Handle(pattern, http.RedirectHandler(pattern+"/", http.StatusMovedPermanently))
 }

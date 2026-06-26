@@ -6,7 +6,7 @@ HTTP 302
 [Captures]
 session: cookie "session"
 
-GET {{base_url}}/workouts/
+GET {{base_url}}/workouts
 [Cookies]
 session: {{session}}
 HTTP 200
@@ -20,7 +20,7 @@ HTTP 200
 [Asserts]
 xpath "string(/html/body/main/h1)" contains "New Workout"
 
-POST {{base_url}}/workouts/
+POST {{base_url}}/workouts
 [Cookies]
 session: {{session}}
 [Form]

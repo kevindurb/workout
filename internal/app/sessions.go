@@ -25,15 +25,11 @@ type SessionsHandler struct {
 	fp      *formparser.FormParser
 }
 
-func (h *SessionsHandler) Routes() http.Handler {
-	mux := http.NewServeMux()
-
+func (h *SessionsHandler) Routes(mux *http.ServeMux) {
 	mux.Handle("GET /login", ghttp.Adapt(h.showLogin))
 	mux.Handle("POST /login", http.HandlerFunc(h.login))
 	mux.Handle("GET /signup", ghttp.Adapt(h.showSignup))
 	mux.Handle("POST /signup", http.HandlerFunc(h.signup))
-
-	return mux
 }
 
 func (h *SessionsHandler) showLogin(w http.ResponseWriter, r *http.Request) (Node, error) {

@@ -27,18 +27,14 @@ type ExercisesHandler struct {
 	fp      *formparser.FormParser
 }
 
-func (h *ExercisesHandler) Routes() http.Handler {
-	mux := http.NewServeMux()
-
-	mux.Handle("GET /{id}", ghttp.Adapt(h.show))
-	mux.Handle("GET /{id}/edit", ghttp.Adapt(h.edit))
-	mux.Handle("GET /", ghttp.Adapt(h.list))
-	mux.Handle("GET /new", ghttp.Adapt(h.new))
-	mux.HandleFunc("POST /", h.create)
-	mux.HandleFunc("POST /{id}", h.update)
-	mux.HandleFunc("POST /{id}/delete", h.delete)
-
-	return mux
+func (h *ExercisesHandler) Routes(mux *http.ServeMux) {
+	mux.Handle("GET /exercises/{id}", ghttp.Adapt(h.show))
+	mux.Handle("GET /exercises/{id}/edit", ghttp.Adapt(h.edit))
+	mux.Handle("GET /exercises", ghttp.Adapt(h.list))
+	mux.Handle("GET /exercises/new", ghttp.Adapt(h.new))
+	mux.HandleFunc("POST /exercises", h.create)
+	mux.HandleFunc("POST /exercises/{id}", h.update)
+	mux.HandleFunc("POST /exercises/{id}/delete", h.delete)
 }
 
 func (h *ExercisesHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {

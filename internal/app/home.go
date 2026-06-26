@@ -13,12 +13,8 @@ import (
 type HomeHandler struct {
 }
 
-func (h *HomeHandler) Routes() http.Handler {
-	mux := http.NewServeMux()
-
+func (h *HomeHandler) Routes(mux *http.ServeMux) {
 	mux.Handle("GET /", ghttp.Adapt(h.show))
-
-	return mux
 }
 
 func (h *HomeHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {

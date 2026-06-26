@@ -1,11 +1,12 @@
 -- +goose up
-CREATE TABLE exercises (
+CREATE TABLE workouts_exercises (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL REFERENCES users(id),
-  name TEXT NOT NULL,
+  workout_id INTEGER NOT NULL REFERENCES workouts(id),
+  exercise_id INTEGER NOT NULL REFERENCES exercises(id),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- +goose down
-DROP TABLE exercises;
+DROP TABLE workouts_exercises;
