@@ -16,3 +16,6 @@
   - [x] Create update api
   - [x] Create show page
   - [x] add hurl test
+- [ ] Build out adding exercises to workouts
+  - [ ] Add exercise selection
+  - [ ] Add create relationship endpoint
