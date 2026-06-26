@@ -8,3 +8,9 @@
   - [x] Create update api
   - [x] Create show page
 - [ ] Build out workout creation
+  - [ ] Scope queries to user_id
+  - [ ] Create new page
+  - [ ] Create create api
+  - [ ] Create edit page
+  - [ ] Create update api
+  - [ ] Create show page
