@@ -47,7 +47,7 @@ type Workout struct {
 	UpdatedAt sql.NullTime
 }
 
-type WorkoutExercise struct {
+type WorkoutsExercise struct {
 	ID         int64
 	UserID     int64
 	WorkoutID  int64
