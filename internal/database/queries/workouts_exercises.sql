@@ -1,3 +1,9 @@
+-- name: GetWorkoutExerciseById :one
+SELECT *
+FROM workouts_exercises
+WHERE id = ?
+AND user_id = ?;
+
 -- name: CreateWorkoutExercise :one
 INSERT INTO workouts_exercises (
   user_id,

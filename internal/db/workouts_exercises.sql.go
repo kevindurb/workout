@@ -53,3 +53,29 @@ func (q *Queries) DeleteWorkoutExerciseByID(ctx context.Context, arg DeleteWorko
 	_, err := q.db.ExecContext(ctx, deleteWorkoutExerciseByID, arg.ID, arg.UserID)
 	return err
 }
+
+const getWorkoutExerciseById = `-- name: GetWorkoutExerciseById :one
+SELECT id, user_id, workout_id, exercise_id, created_at, updated_at
+FROM workouts_exercises
+WHERE id = ?
+AND user_id = ?
+`
+
+type GetWorkoutExerciseByIdParams struct {
+	ID     int64
+	UserID int64
+}
+
+func (q *Queries) GetWorkoutExerciseById(ctx context.Context, arg GetWorkoutExerciseByIdParams) (WorkoutsExercise, error) {
+	row := q.db.QueryRowContext(ctx, getWorkoutExerciseById, arg.ID, arg.UserID)
+	var i WorkoutsExercise
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.WorkoutID,
+		&i.ExerciseID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

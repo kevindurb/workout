@@ -26,10 +26,12 @@ type SessionsHandler struct {
 }
 
 func (h *SessionsHandler) Routes(mux *http.ServeMux) {
-	mux.Handle("GET /login", ghttp.Adapt(h.showLogin))
-	mux.Handle("POST /login", http.HandlerFunc(h.login))
-	mux.Handle("GET /signup", ghttp.Adapt(h.showSignup))
-	mux.Handle("POST /signup", http.HandlerFunc(h.signup))
+	registerPublicRoutes(mux, []Route{
+		{"GET /login", ghttp.Adapt(h.showLogin)},
+		{"POST /login", http.HandlerFunc(h.login)},
+		{"GET /signup", ghttp.Adapt(h.showSignup)},
+		{"POST /signup", http.HandlerFunc(h.signup)},
+	})
 }
 
 func (h *SessionsHandler) showLogin(w http.ResponseWriter, r *http.Request) (Node, error) {

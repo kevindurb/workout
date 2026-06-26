@@ -27,12 +27,12 @@ type WorkoutsExercisesHandler struct {
 }
 
 func (h *WorkoutsExercisesHandler) Routes(mux *http.ServeMux) {
-	mux.Handle("GET /workouts/{workout_id}/exercises/new", ghttp.Adapt(h.new))
+	mux.Handle("GET /workouts/{workout_id}/exercises/edit", ghttp.Adapt(h.edit))
 	mux.HandleFunc("POST /workouts_exercises", h.create)
 	mux.HandleFunc("POST /workouts_exercises/{id}/delete", h.delete)
 }
 
-func (h *WorkoutsExercisesHandler) new(w http.ResponseWriter, r *http.Request) (Node, error) {
+func (h *WorkoutsExercisesHandler) edit(w http.ResponseWriter, r *http.Request) (Node, error) {
 	workoutID, _ := pathInt(r, "workout_id")
 	userID := h.sm.UserID(r.Context())
 	_, err := h.q.GetWorkoutByID(r.Context(), db.GetWorkoutByIDParams{
@@ -91,15 +91,24 @@ func (h *WorkoutsExercisesHandler) create(w http.ResponseWriter, r *http.Request
 		ExerciseID: data.ExerciseID,
 	})
 
-	http.Redirect(w, r, fmt.Sprintf("/workouts/%d", workout.ID), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("/workouts/%d/exercises/edit", workout.ID), http.StatusFound)
 }
 
 func (h *WorkoutsExercisesHandler) delete(w http.ResponseWriter, r *http.Request) {
 	id, _ := pathInt(r, "id")
 	userID := h.sm.UserID(r.Context())
+	workoutExercise, err := h.q.GetWorkoutExerciseById(r.Context(), db.GetWorkoutExerciseByIdParams{
+		ID:     id,
+		UserID: userID,
+	})
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	h.q.DeleteWorkoutExerciseByID(r.Context(), db.DeleteWorkoutExerciseByIDParams{
 		ID:     id,
 		UserID: userID,
 	})
-	http.Redirect(w, r, "/", http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("/workouts/%d/exercises/edit", workoutExercise.WorkoutID), http.StatusFound)
 }

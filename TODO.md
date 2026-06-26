@@ -17,5 +17,9 @@
   - [x] Create show page
   - [x] add hurl test
 - [ ] Build out adding exercises to workouts
-  - [ ] Add exercise selection
-  - [ ] Add create relationship endpoint
+  - [x] Add exercise selection
+  - [x] Add create relationship endpoint
+  - [ ] Add link to selector from workout show
+  - [ ] Show linked exercises on workout show
+  - [ ] Test full flow
+  - [ ] Write hurl test for flow

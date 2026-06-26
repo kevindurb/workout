@@ -17,13 +17,16 @@ type EntriesHandler struct {
 }
 
 func (h *EntriesHandler) Routes(mux *http.ServeMux) {
-	mux.Handle("GET /entries/{id}", ghttp.Adapt(h.show))
-	mux.Handle("GET /entries/{id}/edit", ghttp.Adapt(h.edit))
-	mux.Handle("GET /entries", ghttp.Adapt(h.list))
-	mux.Handle("GET /entries/new", ghttp.Adapt(h.new))
-	mux.HandleFunc("POST /entries", h.create)
-	mux.HandleFunc("POST /entries/{id}", h.update)
-	mux.HandleFunc("POST /entries/{id}/delete", h.delete)
+	registerAuthRoutes(mux, h.sm, []Route{
+		{"GET /entries/{id}", ghttp.Adapt(h.show)},
+		{"GET /entries/{id}/edit", ghttp.Adapt(h.edit)},
+		{"GET /entries", ghttp.Adapt(h.list)},
+		{"GET /entries/new", ghttp.Adapt(h.new)},
+
+		{"POST /entries", http.HandlerFunc(h.create)},
+		{"POST /entries/{id}", http.HandlerFunc(h.update)},
+		{"POST /entries/{id}/delete", http.HandlerFunc(h.delete)},
+	})
 }
 
 func (h *EntriesHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {

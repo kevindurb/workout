@@ -51,6 +51,7 @@ func (h *WorkoutsHandler) show(w http.ResponseWriter, r *http.Request) (Node, er
 	return Layout(
 		H1(Text(workout.Name)),
 		A(Href(fmt.Sprintf("/workouts/%d/edit", workout.ID)), Text("Edit")),
+		A(Href(fmt.Sprintf("/workouts/%d/exercises", workout.ID)), Text("Exercises")),
 	), nil
 }
 
@@ -108,10 +109,16 @@ func (h *WorkoutsHandler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workout, _ := h.queries.CreateWorkout(r.Context(), db.CreateWorkoutParams{
+	workout, err := h.queries.CreateWorkout(r.Context(), db.CreateWorkoutParams{
 		UserID: userID,
 		Name:   data.Name,
 	})
+
+	if err != nil {
+		log.Printf("Error creating workout(user_id: %d, name: %s): %v", userID, data.Name, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	http.Redirect(w, r, fmt.Sprintf("/workouts/%d", workout.ID), http.StatusFound)
 }
