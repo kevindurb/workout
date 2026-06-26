@@ -127,7 +127,7 @@ func (h *ExercisesHandler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exercise, _ := h.queries.UpdateExercise(r.Context(), db.UpdateExerciseParams{
+	h.queries.UpdateExercise(r.Context(), db.UpdateExerciseParams{
 		ID:     id,
 		UserID: userID,
 		Name:   data.Name,
