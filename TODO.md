@@ -1,16 +1,18 @@
 # TODO
 
-- [ ] Build out exercise creation
+- [x] Build out exercise creation
   - [x] Scope queries to user_id
   - [x] Create new page
   - [x] Create create api
   - [x] Create edit page
   - [x] Create update api
   - [x] Create show page
-- [ ] Build out workout creation
-  - [ ] Scope queries to user_id
-  - [ ] Create new page
-  - [ ] Create create api
-  - [ ] Create edit page
-  - [ ] Create update api
-  - [ ] Create show page
+  - [x] add hurl test
+- [x] Build out workout creation
+  - [x] Scope queries to user_id
+  - [x] Create new page
+  - [x] Create create api
+  - [x] Create edit page
+  - [x] Create update api
+  - [x] Create show page
+  - [x] add hurl test

@@ -1,3 +1,5 @@
+export HURL_VARIABLE_base_url := "http://localhost:1337"
+
 default:
   @just --list
 
@@ -5,4 +7,4 @@ hurl *ARGS:
   hurl {{ARGS}}
 
 all:
-  hurl .
+  just hurl .

@@ -1,9 +1,9 @@
-POST http://localhost:1337/signup
+POST {{base_url}}/signup
 [Form]
 email: test@example.com
 password: abc123
 
-POST http://localhost:1337/login
+POST {{base_url}}/login
 [Form]
 email: test@example.com
 password: abc123

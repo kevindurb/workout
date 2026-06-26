@@ -1,9 +1,12 @@
 package app
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/kevindurb/planner/internal/db"
+	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
 
 	. "maragu.dev/gomponents"
@@ -11,9 +14,18 @@ import (
 	ghttp "maragu.dev/gomponents/http"
 )
 
+type createWorkoutBody struct {
+	Name string `form:"name,required"`
+}
+
+type updateWorkoutBody struct {
+	Name string `form:"name,required"`
+}
+
 type WorkoutsHandler struct {
 	queries *db.Queries
 	sm      *SessionManager
+	fp      *formparser.FormParser
 }
 
 func (h *WorkoutsHandler) Routes() http.Handler {
@@ -32,12 +44,17 @@ func (h *WorkoutsHandler) Routes() http.Handler {
 
 func (h *WorkoutsHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
 	id, _ := pathInt(r, "id")
-	workout, err := h.queries.GetWorkoutByID(r.Context(), id)
+	userID := h.sm.UserID(r.Context())
+	workout, err := h.queries.GetWorkoutByID(r.Context(), db.GetWorkoutByIDParams{
+		ID:     id,
+		UserID: userID,
+	})
 	if err != nil {
 		return nil, StatusCodeError{http.StatusNotFound}
 	}
 	return Layout(
 		H1(Text(workout.Name)),
+		A(Href(fmt.Sprintf("/workouts/%d/edit", workout.ID)), Text("Edit")),
 	), nil
 }
 
@@ -54,30 +71,80 @@ func (h *WorkoutsHandler) list(w http.ResponseWriter, r *http.Request) (Node, er
 func (h *WorkoutsHandler) new(w http.ResponseWriter, r *http.Request) (Node, error) {
 	return Layout(
 		H1(Text("New Workout")),
+		Form(
+			Method("POST"),
+			Action("/workouts"),
+			Label(For("name"), Text("Name")),
+			Input(Type("text"), ID("name"), Name("name"), Required()),
+			Button(Type("submit"), Text("Create")),
+		),
 	), nil
 }
 
 func (h *WorkoutsHandler) edit(w http.ResponseWriter, r *http.Request) (Node, error) {
 	id, _ := pathInt(r, "id")
-	workout, err := h.queries.GetWorkoutByID(r.Context(), id)
+	userID := h.sm.UserID(r.Context())
+	workout, err := h.queries.GetWorkoutByID(r.Context(), db.GetWorkoutByIDParams{
+		ID:     id,
+		UserID: userID,
+	})
 	if err != nil {
 		return nil, StatusCodeError{http.StatusNotFound}
 	}
 	return Layout(
-		H1(Text("Edit " + workout.Name)),
+		H1(Text("Edit "+workout.Name)),
+		Form(
+			Method("POST"),
+			Action(fmt.Sprintf("/workouts/%d", workout.ID)),
+			Label(For("name"), Text("Name")),
+			Input(Type("text"), ID("name"), Name("name"), Value(workout.Name), Required()),
+			Button(Type("submit"), Text("Save")),
+		),
 	), nil
 }
 
 func (h *WorkoutsHandler) create(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/workouts/", http.StatusFound)
+	userID := h.sm.UserID(r.Context())
+	var data createWorkoutBody
+	if err := h.fp.Parse(&data, r); err != nil {
+		log.Printf("Error parsing body: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	workout, _ := h.queries.CreateWorkout(r.Context(), db.CreateWorkoutParams{
+		UserID: userID,
+		Name:   data.Name,
+	})
+
+	http.Redirect(w, r, fmt.Sprintf("/workouts/%d", workout.ID), http.StatusFound)
 }
 
 func (h *WorkoutsHandler) update(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/workouts/", http.StatusFound)
+	id, _ := pathInt(r, "id")
+	userID := h.sm.UserID(r.Context())
+	var data updateWorkoutBody
+	if err := h.fp.Parse(&data, r); err != nil {
+		log.Printf("Error parsing body: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	h.queries.UpdateWorkout(r.Context(), db.UpdateWorkoutParams{
+		ID:     id,
+		UserID: userID,
+		Name:   data.Name,
+	})
+
+	http.Redirect(w, r, fmt.Sprintf("/workouts/%d", workout.ID), http.StatusFound)
 }
 
 func (h *WorkoutsHandler) delete(w http.ResponseWriter, r *http.Request) {
 	id, _ := pathInt(r, "id")
-	h.queries.DeleteWorkoutByID(r.Context(), id)
+	userID := h.sm.UserID(r.Context())
+	h.queries.DeleteWorkoutByID(r.Context(), db.DeleteWorkoutByIDParams{
+		ID:     id,
+		UserID: userID,
+	})
 	http.Redirect(w, r, "/", http.StatusFound)
 }

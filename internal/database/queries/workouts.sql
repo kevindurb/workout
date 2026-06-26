@@ -6,7 +6,8 @@ WHERE user_id = ?;
 -- name: GetWorkoutByID :one
 SELECT *
 FROM workouts
-WHERE id = ?;
+WHERE id = ?
+AND user_id = ?;
 
 -- name: CreateWorkout :one
 INSERT INTO workouts (
@@ -19,8 +20,10 @@ RETURNING *;
 UPDATE workouts
 SET name = ?
 WHERE id = ?
+AND user_id = ?
 RETURNING *;
 
 -- name: DeleteWorkoutByID :exec
 DELETE FROM workouts
-WHERE id = ?;
+WHERE id = ?
+AND user_id = ?;

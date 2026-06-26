@@ -1,4 +1,4 @@
-POST http://localhost:1337/login
+POST {{base_url}}/login
 [Form]
 email: test@example.com
 password: abc123

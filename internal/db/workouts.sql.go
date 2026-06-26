@@ -38,10 +38,16 @@ func (q *Queries) CreateWorkout(ctx context.Context, arg CreateWorkoutParams) (W
 const deleteWorkoutByID = `-- name: DeleteWorkoutByID :exec
 DELETE FROM workouts
 WHERE id = ?
+AND user_id = ?
 `
 
-func (q *Queries) DeleteWorkoutByID(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteWorkoutByID, id)
+type DeleteWorkoutByIDParams struct {
+	ID     int64
+	UserID int64
+}
+
+func (q *Queries) DeleteWorkoutByID(ctx context.Context, arg DeleteWorkoutByIDParams) error {
+	_, err := q.db.ExecContext(ctx, deleteWorkoutByID, arg.ID, arg.UserID)
 	return err
 }
 
@@ -49,10 +55,16 @@ const getWorkoutByID = `-- name: GetWorkoutByID :one
 SELECT id, user_id, name, created_at, updated_at
 FROM workouts
 WHERE id = ?
+AND user_id = ?
 `
 
-func (q *Queries) GetWorkoutByID(ctx context.Context, id int64) (Workout, error) {
-	row := q.db.QueryRowContext(ctx, getWorkoutByID, id)
+type GetWorkoutByIDParams struct {
+	ID     int64
+	UserID int64
+}
+
+func (q *Queries) GetWorkoutByID(ctx context.Context, arg GetWorkoutByIDParams) (Workout, error) {
+	row := q.db.QueryRowContext(ctx, getWorkoutByID, arg.ID, arg.UserID)
 	var i Workout
 	err := row.Scan(
 		&i.ID,
@@ -103,16 +115,18 @@ const updateWorkout = `-- name: UpdateWorkout :one
 UPDATE workouts
 SET name = ?
 WHERE id = ?
+AND user_id = ?
 RETURNING id, user_id, name, created_at, updated_at
 `
 
 type UpdateWorkoutParams struct {
-	Name string
-	ID   int64
+	Name   string
+	ID     int64
+	UserID int64
 }
 
 func (q *Queries) UpdateWorkout(ctx context.Context, arg UpdateWorkoutParams) (Workout, error) {
-	row := q.db.QueryRowContext(ctx, updateWorkout, arg.Name, arg.ID)
+	row := q.db.QueryRowContext(ctx, updateWorkout, arg.Name, arg.ID, arg.UserID)
 	var i Workout
 	err := row.Scan(
 		&i.ID,
