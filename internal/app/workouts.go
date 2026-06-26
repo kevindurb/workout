@@ -136,7 +136,7 @@ func (h *WorkoutsHandler) update(w http.ResponseWriter, r *http.Request) {
 		Name:   data.Name,
 	})
 
-	http.Redirect(w, r, fmt.Sprintf("/workouts/%d", workout.ID), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("/workouts/%d", id), http.StatusFound)
 }
 
 func (h *WorkoutsHandler) delete(w http.ResponseWriter, r *http.Request) {
