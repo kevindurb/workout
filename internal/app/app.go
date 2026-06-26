@@ -34,7 +34,7 @@ func New(conn *sql.DB) *App {
 		queries:   q,
 		home:      &HomeHandler{},
 		workouts:  &WorkoutsHandler{q, sm},
-		exercises: &ExercisesHandler{q, sm},
+		exercises: &ExercisesHandler{q, sm, fp},
 		entries:   &EntriesHandler{q, sm},
 		sessions:  &SessionsHandler{q, sm, fp},
 	}
