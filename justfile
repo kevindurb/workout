@@ -12,7 +12,7 @@ test:
   go test -v ./...
 
 dev:
-  air
+  go tool air
 
 test-watch:
   watchexec -e go,tmpl,sql just test
