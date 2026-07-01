@@ -1,0 +1,10 @@
+---
+session_name: workout
+start_directory: ./
+windows:
+  - window_name: main
+    layout: main-vertical
+    panes:
+      - nvim
+      - just dev
+      -
