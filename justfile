@@ -20,6 +20,9 @@ test-watch:
 e2e-watch:
   watchexec -e go,sql,hurl just e2e
 
+sql-watch:
+  watchexec -e sql just sqlc generate
+
 sqlfluff-fix:
   sqlfluff fix ./internal/database/**/*.sql
 
