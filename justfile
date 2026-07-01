@@ -17,9 +17,6 @@ dev:
 test-watch:
   watchexec -e go,tmpl,sql just test
 
-e2e:
-  hurl test/e2e
-
 e2e-watch:
   watchexec -e go,sql,hurl just e2e
 
@@ -30,7 +27,7 @@ pre-commit-install:
   pre-commit install
 
 goose *ARGS:
-  goose {{ARGS}}
+  go tool goose {{ARGS}}
 
 sqlc *ARGS:
-  sqlc {{ARGS}}
+  go tool sqlc {{ARGS}}
