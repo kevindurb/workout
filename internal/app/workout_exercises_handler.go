@@ -52,9 +52,9 @@ func (h *WorkoutsExercisesHandler) edit(w http.ResponseWriter, r *http.Request) 
 		Map(exercises, func(exercise db.Exercise) Node {
 			return Form(
 				Method("POST"),
+				Action("/workouts_exercises"),
 				Input(Type("hidden"), Name("workout_id"), Value(strconv.FormatInt(workoutID, 10))),
 				Input(Type("hidden"), Name("exercise_id"), Value(strconv.FormatInt(exercise.ID, 10))),
-				Action("/workouts_exercises"),
 				Label(Text(exercise.Name)),
 				Button(Type("submit"), Text("Add")),
 			)
