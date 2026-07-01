@@ -28,13 +28,15 @@ type ExercisesHandler struct {
 }
 
 func (h *ExercisesHandler) Routes(mux *http.ServeMux) {
-	mux.Handle("GET /exercises/{id}", ghttp.Adapt(h.show))
-	mux.Handle("GET /exercises/{id}/edit", ghttp.Adapt(h.edit))
-	mux.Handle("GET /exercises", ghttp.Adapt(h.list))
-	mux.Handle("GET /exercises/new", ghttp.Adapt(h.new))
-	mux.HandleFunc("POST /exercises", h.create)
-	mux.HandleFunc("POST /exercises/{id}", h.update)
-	mux.HandleFunc("POST /exercises/{id}/delete", h.delete)
+	registerAuthRoutes(mux, h.sm, []Route{
+		{"GET /exercises/{id}", ghttp.Adapt(h.show)},
+		{"GET /exercises/{id}/edit", ghttp.Adapt(h.edit)},
+		{"GET /exercises", ghttp.Adapt(h.list)},
+		{"GET /exercises/new", ghttp.Adapt(h.new)},
+		{"POST /exercises", http.HandlerFunc(h.create)},
+		{"POST /exercises/{id}", http.HandlerFunc(h.update)},
+		{"POST /exercises/{id}/delete", http.HandlerFunc(h.delete)},
+	})
 }
 
 func (h *ExercisesHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {

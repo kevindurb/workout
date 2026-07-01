@@ -29,13 +29,15 @@ type WorkoutsHandler struct {
 }
 
 func (h *WorkoutsHandler) Routes(mux *http.ServeMux) {
-	mux.Handle("GET /workouts/{id}", ghttp.Adapt(h.show))
-	mux.Handle("GET /workouts/{id}/edit", ghttp.Adapt(h.edit))
-	mux.Handle("GET /workouts", ghttp.Adapt(h.list))
-	mux.Handle("GET /workouts/new", ghttp.Adapt(h.new))
-	mux.HandleFunc("POST /workouts", h.create)
-	mux.HandleFunc("POST /workouts/{id}", h.update)
-	mux.HandleFunc("POST /workouts/{id}/delete", h.delete)
+	registerAuthRoutes(mux, h.sm, []Route{
+		{"GET /workouts/{id}", ghttp.Adapt(h.show)},
+		{"GET /workouts/{id}/edit", ghttp.Adapt(h.edit)},
+		{"GET /workouts", ghttp.Adapt(h.list)},
+		{"GET /workouts/new", ghttp.Adapt(h.new)},
+		{"POST /workouts", http.HandlerFunc(h.create)},
+		{"POST /workouts/{id}", http.HandlerFunc(h.update)},
+		{"POST /workouts/{id}/delete", http.HandlerFunc(h.delete)},
+	})
 }
 
 func (h *WorkoutsHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {

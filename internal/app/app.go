@@ -33,7 +33,7 @@ func New(conn *sql.DB) *App {
 		sm:                sm,
 		fp:                fp,
 		queries:           q,
-		home:              &HomeHandler{},
+		home:              &HomeHandler{q, sm, fp},
 		workouts:          &WorkoutsHandler{q, sm, fp},
 		exercises:         &ExercisesHandler{q, sm, fp},
 		entries:           &EntriesHandler{q, sm},
