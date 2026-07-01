@@ -1,9 +1,15 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/kevindurb/planner/internal/app"
 	"github.com/kevindurb/planner/internal/database"
@@ -26,5 +32,29 @@ func main() {
 
 	a := app.New(db)
 
-	log.Fatal(http.ListenAndServe(":1337", a.Routes()))
+	srv := &http.Server{
+		Addr:    "0.0.0.0:1337",
+		Handler: a.Routes(),
+	}
+
+	go func() {
+		log.Printf("Listening on http://%s", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("Server error: %s", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutting down…")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Fatalf("Forced shutdown: %s", err)
+	}
+
+	log.Println("Server stopped.")
 }
