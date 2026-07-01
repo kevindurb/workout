@@ -18,7 +18,7 @@ WHERE id = ?
 AND user_id = ?;
 
 -- name: ListExercisesByWorkoutId :many
-SELECT exercises.*
+SELECT exercises.*, workouts_exercises.id as workout_exercise_id
 FROM exercises
 JOIN workouts_exercises ON workouts_exercises.exercise_id = exercises.id
 WHERE workouts_exercises.workout_id = ?

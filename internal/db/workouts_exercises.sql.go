@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createWorkoutExercise = `-- name: CreateWorkoutExercise :one
@@ -81,7 +82,7 @@ func (q *Queries) GetWorkoutExerciseById(ctx context.Context, arg GetWorkoutExer
 }
 
 const listExercisesByWorkoutId = `-- name: ListExercisesByWorkoutId :many
-SELECT exercises.id, exercises.user_id, exercises.name, exercises.created_at, exercises.updated_at
+SELECT exercises.id, exercises.user_id, exercises.name, exercises.created_at, exercises.updated_at, workouts_exercises.id as workout_exercise_id
 FROM exercises
 JOIN workouts_exercises ON workouts_exercises.exercise_id = exercises.id
 WHERE workouts_exercises.workout_id = ?
@@ -93,21 +94,31 @@ type ListExercisesByWorkoutIdParams struct {
 	UserID    int64
 }
 
-func (q *Queries) ListExercisesByWorkoutId(ctx context.Context, arg ListExercisesByWorkoutIdParams) ([]Exercise, error) {
+type ListExercisesByWorkoutIdRow struct {
+	ID                int64
+	UserID            int64
+	Name              string
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+	WorkoutExerciseID int64
+}
+
+func (q *Queries) ListExercisesByWorkoutId(ctx context.Context, arg ListExercisesByWorkoutIdParams) ([]ListExercisesByWorkoutIdRow, error) {
 	rows, err := q.db.QueryContext(ctx, listExercisesByWorkoutId, arg.WorkoutID, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Exercise
+	var items []ListExercisesByWorkoutIdRow
 	for rows.Next() {
-		var i Exercise
+		var i ListExercisesByWorkoutIdRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
 			&i.Name,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.WorkoutExerciseID,
 		); err != nil {
 			return nil, err
 		}

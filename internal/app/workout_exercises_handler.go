@@ -42,13 +42,28 @@ func (h *WorkoutsExercisesHandler) edit(w http.ResponseWriter, r *http.Request) 
 		UserID: userID,
 	})
 	if err != nil {
+		log.Printf("Error getting workout(%d): %v", workoutID, err)
 		return nil, StatusCodeError{http.StatusBadRequest}
 	}
 
 	exercises, _ := h.q.ListAllExercises(r.Context(), userID)
+	workoutExercises, _ := h.q.ListExercisesByWorkoutId(r.Context(), db.ListExercisesByWorkoutIdParams{
+		WorkoutID: workoutID,
+		UserID:    userID,
+	})
 	return Layout(
 		H1(Text("Choose Exercise")),
 		A(Href("/exercises/new"), Text("Create Exercise")),
+		H2(Text("Existing")),
+		Map(workoutExercises, func(exercise db.ListExercisesByWorkoutIdRow) Node {
+			return Form(
+				Method("POST"),
+				Action(fmt.Sprintf("/workouts_exercises/%d/delete", exercise.WorkoutExerciseID)),
+				Label(Text(exercise.Name)),
+				Button(Type("submit"), Text("Remove")),
+			)
+		}),
+		H2(Text("Ones to add")),
 		Map(exercises, func(exercise db.Exercise) Node {
 			return Form(
 				Method("POST"),
@@ -76,6 +91,7 @@ func (h *WorkoutsExercisesHandler) create(w http.ResponseWriter, r *http.Request
 		UserID: userID,
 	})
 	if err != nil {
+		log.Printf("Error getting workout (%d): %v", data.WorkoutID, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -85,17 +101,23 @@ func (h *WorkoutsExercisesHandler) create(w http.ResponseWriter, r *http.Request
 		UserID: userID,
 	})
 	if err != nil {
+		log.Printf("Error getting exercise (%d): %v", data.ExerciseID, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	workout, _ := h.q.CreateWorkoutExercise(r.Context(), db.CreateWorkoutExerciseParams{
+	_, err = h.q.CreateWorkoutExercise(r.Context(), db.CreateWorkoutExerciseParams{
 		UserID:     userID,
 		WorkoutID:  data.WorkoutID,
 		ExerciseID: data.ExerciseID,
 	})
+	if err != nil {
+		log.Printf("Error creating workout_exercise: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-	http.Redirect(w, r, fmt.Sprintf("/workouts/%d/exercises/edit", workout.ID), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("/workouts/%d/exercises/edit", data.WorkoutID), http.StatusFound)
 }
 
 func (h *WorkoutsExercisesHandler) delete(w http.ResponseWriter, r *http.Request) {

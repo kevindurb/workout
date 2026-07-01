@@ -59,7 +59,7 @@ func (h *WorkoutsHandler) show(w http.ResponseWriter, r *http.Request) (Node, er
 		A(Href(fmt.Sprintf("/workouts/%d/edit", workout.ID)), Text("Edit")),
 		A(Href(fmt.Sprintf("/workouts/%d/exercises/edit", workout.ID)), Text("Exercises")),
 		Ul(
-			Map(exercises, func(exercise db.Exercise) Node {
+			Map(exercises, func(exercise db.ListExercisesByWorkoutIdRow) Node {
 				return Li(Text(exercise.Name))
 			}),
 		),
