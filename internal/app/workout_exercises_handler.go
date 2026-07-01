@@ -48,12 +48,14 @@ func (h *WorkoutsExercisesHandler) edit(w http.ResponseWriter, r *http.Request) 
 	exercises, _ := h.q.ListAllExercises(r.Context(), userID)
 	return Layout(
 		H1(Text("Choose Exercise")),
+		A(Href("/exercises/new"), Text("Create Exercise")),
 		Map(exercises, func(exercise db.Exercise) Node {
 			return Form(
 				Method("POST"),
 				Input(Type("hidden"), Name("workout_id"), Value(strconv.FormatInt(workoutID, 10))),
 				Input(Type("hidden"), Name("exercise_id"), Value(strconv.FormatInt(exercise.ID, 10))),
 				Action("/workouts_exercises"),
+				Label(Text(exercise.Name)),
 				Button(Type("submit"), Text("Add")),
 			)
 		}),

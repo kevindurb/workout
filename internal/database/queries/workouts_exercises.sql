@@ -17,3 +17,9 @@ DELETE FROM workouts_exercises
 WHERE id = ?
 AND user_id = ?;
 
+-- name: ListExercisesByWorkoutId :many
+SELECT exercises.*
+FROM exercises
+JOIN workouts_exercises ON workouts_exercises.exercise_id = exercises.id
+WHERE workouts_exercises.workout_id = ?
+AND workouts_exercises.user_id = ?;

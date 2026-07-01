@@ -76,11 +76,13 @@ func (h *SessionsHandler) login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.queries.GetUserByEmail(r.Context(), data.Email)
 	if err != nil {
+		log.Printf("Error getting user by email (%s): %v", data.Email, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	if err = bcrypt.CompareHashAndPassword(user.Hash, []byte(data.Password)); err != nil {
+		log.Printf("Error comparing password (%s) for user (%s): %v", data.Password, data.Email, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
