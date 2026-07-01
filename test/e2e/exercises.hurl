@@ -1,3 +1,6 @@
+# vim: foldmethod=marker
+
+# SETUP {{{
 POST {{base_url}}/login
 [Form]
 email: test@example.com
@@ -5,7 +8,9 @@ password: abc123
 HTTP 302
 [Captures]
 session: cookie "session"
+# }}}
 
+# TEST {{{
 GET {{base_url}}/exercises
 [Cookies]
 session: {{session}}
@@ -49,8 +54,11 @@ session: {{session}}
 HTTP 200
 [Asserts]
 xpath "string(/html/body/main/h1)" contains "updated test exercise"
+# }}}
 
+# CLEANUP {{{
 POST {{base_url}}{{exercise_url}}/delete
 [Cookies]
 session: {{session}}
 HTTP 302
+# }}}
