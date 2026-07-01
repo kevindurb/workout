@@ -5,13 +5,16 @@ export GOOSE_MIGRATION_DIR := "./internal/database/migrations"
 default:
   @just --list
 
+[parallel]
+dev: air sql-watch
+
 run:
   go run cmd/planner/main.go
 
 test:
   go test -v ./...
 
-dev:
+air:
   go tool air
 
 test-watch:

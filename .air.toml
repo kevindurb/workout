@@ -11,5 +11,4 @@ enabled = true
 proxy_port = 11337
 
 [screen]
-clear_on_rebuild = true
 keep_scroll = false
