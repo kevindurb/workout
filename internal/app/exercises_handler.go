@@ -12,7 +12,7 @@ import (
 	ghttp "maragu.dev/gomponents/http"
 )
 
-var exercisesPathBuilder = PathBuilder{"exercises"}
+var exercisesPaths = Paths{"exercises"}
 
 type createExerciseBody struct {
 	Name string `form:"name,required"`
@@ -52,7 +52,7 @@ func (h *ExercisesHandler) show(w http.ResponseWriter, r *http.Request) (Node, e
 	}
 	return Layout(
 		H1(Text(exercise.Name)),
-		A(Href(exercisesPathBuilder.Edit(exercise.ID)), Text("Edit")),
+		A(Href(exercisesPaths.Edit(exercise.ID)), Text("Edit")),
 	), nil
 }
 
@@ -93,7 +93,7 @@ func (h *ExercisesHandler) edit(w http.ResponseWriter, r *http.Request) (Node, e
 		H1(Text("Edit "+exercise.Name)),
 		Form(
 			Method("POST"),
-			Action(exercisesPathBuilder.Show(exercise.ID)),
+			Action(exercisesPaths.Show(exercise.ID)),
 			Label(For("name"), Text("Name")),
 			Input(Type("text"), ID("name"), Name("name"), Value(exercise.Name), Required()),
 			Button(Type("submit"), Text("Save")),
@@ -114,7 +114,7 @@ func (h *ExercisesHandler) create(w http.ResponseWriter, r *http.Request) {
 		UserID: userID,
 	})
 
-	http.Redirect(w, r, exercisesPathBuilder.Show(exercise.ID), http.StatusFound)
+	http.Redirect(w, r, exercisesPaths.Show(exercise.ID), http.StatusFound)
 }
 
 func (h *ExercisesHandler) update(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +132,7 @@ func (h *ExercisesHandler) update(w http.ResponseWriter, r *http.Request) {
 		Name:   data.Name,
 	})
 
-	http.Redirect(w, r, exercisesPathBuilder.Show(id), http.StatusFound)
+	http.Redirect(w, r, exercisesPaths.Show(id), http.StatusFound)
 }
 
 func (h *ExercisesHandler) delete(w http.ResponseWriter, r *http.Request) {

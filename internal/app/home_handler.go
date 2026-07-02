@@ -29,11 +29,11 @@ func (h *HomeHandler) show(w http.ResponseWriter, r *http.Request) (Node, error)
 	workouts, _ := h.q.ListAllWorkouts(r.Context(), userID)
 	return Layout(
 		H1(Text("Home")),
-		A(Href(workoutsPathBuilder.New()), Text("New Workout")),
-		A(Href(exercisesPathBuilder.New()), Text("New Exercise")),
+		A(Href(workoutPaths.New()), Text("New Workout")),
+		A(Href(exercisesPaths.New()), Text("New Exercise")),
 		Ul(
 			Map(workouts, func(workout db.Workout) Node {
-				return Li(A(Href(workoutsPathBuilder.Show(workout.ID)), Text(workout.Name)))
+				return Li(A(Href(workoutPaths.Show(workout.ID)), Text(workout.Name)))
 			}),
 		),
 	), nil
