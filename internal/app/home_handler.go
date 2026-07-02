@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/kevindurb/planner/internal/db"
@@ -30,11 +29,11 @@ func (h *HomeHandler) show(w http.ResponseWriter, r *http.Request) (Node, error)
 	workouts, _ := h.q.ListAllWorkouts(r.Context(), userID)
 	return Layout(
 		H1(Text("Home")),
-		A(Href("/workouts/new"), Text("New Workout")),
-		A(Href("/exercises/new"), Text("New Exercise")),
+		A(Href(workoutsPathBuilder.New()), Text("New Workout")),
+		A(Href(exercisesPathBuilder.New()), Text("New Exercise")),
 		Ul(
 			Map(workouts, func(workout db.Workout) Node {
-				return Li(A(Href(fmt.Sprintf("/workouts/%d", workout.ID)), Text(workout.Name)))
+				return Li(A(Href(workoutsPathBuilder.Show(workout.ID)), Text(workout.Name)))
 			}),
 		),
 	), nil

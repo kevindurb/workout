@@ -11,6 +11,8 @@ import (
 	ghttp "maragu.dev/gomponents/http"
 )
 
+var entriesPathBuilder = PathBuilder{"entries"}
+
 type EntriesHandler struct {
 	queries *db.Queries
 	sm      *SessionManager
@@ -68,11 +70,11 @@ func (h *EntriesHandler) edit(w http.ResponseWriter, r *http.Request) (Node, err
 }
 
 func (h *EntriesHandler) create(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/entries/", http.StatusFound)
+	http.Redirect(w, r, entriesPathBuilder.List(), http.StatusFound)
 }
 
 func (h *EntriesHandler) update(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/entries/", http.StatusFound)
+	http.Redirect(w, r, entriesPathBuilder.List(), http.StatusFound)
 }
 
 func (h *EntriesHandler) delete(w http.ResponseWriter, r *http.Request) {

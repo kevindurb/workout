@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/kevindurb/planner/internal/db"
@@ -12,6 +11,8 @@ import (
 	. "maragu.dev/gomponents/html"
 	ghttp "maragu.dev/gomponents/http"
 )
+
+var exercisesPathBuilder = PathBuilder{"exercises"}
 
 type createExerciseBody struct {
 	Name string `form:"name,required"`
@@ -51,7 +52,7 @@ func (h *ExercisesHandler) show(w http.ResponseWriter, r *http.Request) (Node, e
 	}
 	return Layout(
 		H1(Text(exercise.Name)),
-		A(Href(fmt.Sprintf("/exercises/%d/edit", exercise.ID)), Text("Edit")),
+		A(Href(exercisesPathBuilder.Edit(exercise.ID)), Text("Edit")),
 	), nil
 }
 
@@ -92,7 +93,7 @@ func (h *ExercisesHandler) edit(w http.ResponseWriter, r *http.Request) (Node, e
 		H1(Text("Edit "+exercise.Name)),
 		Form(
 			Method("POST"),
-			Action(fmt.Sprintf("/exercises/%d", exercise.ID)),
+			Action(exercisesPathBuilder.Show(exercise.ID)),
 			Label(For("name"), Text("Name")),
 			Input(Type("text"), ID("name"), Name("name"), Value(exercise.Name), Required()),
 			Button(Type("submit"), Text("Save")),
@@ -113,7 +114,7 @@ func (h *ExercisesHandler) create(w http.ResponseWriter, r *http.Request) {
 		UserID: userID,
 	})
 
-	http.Redirect(w, r, fmt.Sprintf("/exercises/%d", exercise.ID), http.StatusFound)
+	http.Redirect(w, r, exercisesPathBuilder.Show(exercise.ID), http.StatusFound)
 }
 
 func (h *ExercisesHandler) update(w http.ResponseWriter, r *http.Request) {
@@ -131,7 +132,7 @@ func (h *ExercisesHandler) update(w http.ResponseWriter, r *http.Request) {
 		Name:   data.Name,
 	})
 
-	http.Redirect(w, r, fmt.Sprintf("/exercises/%d", id), http.StatusFound)
+	http.Redirect(w, r, exercisesPathBuilder.Show(id), http.StatusFound)
 }
 
 func (h *ExercisesHandler) delete(w http.ResponseWriter, r *http.Request) {
