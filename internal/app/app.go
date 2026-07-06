@@ -48,12 +48,12 @@ func New(conn *sql.DB) *App {
 func (a *App) Routes() http.Handler {
 	r := chi.NewRouter()
 	r.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Files))))
-	r.Route("/workouts", a.workoutsHandler.Route)
 	r.Route("/login", a.loginHandler.Route)
 	r.Route("/signup", a.signupHandler.Route)
-	r.Route("/exercises", a.exercisesHandler.Route)
-	r.Route("/entries", a.entriesHandler.Route)
-	r.Route("/", a.homeHandler.Route)
+	r.With(a.sm.RequireAuth).Route("/workouts", a.workoutsHandler.Route)
+	r.With(a.sm.RequireAuth).Route("/exercises", a.exercisesHandler.Route)
+	r.With(a.sm.RequireAuth).Route("/entries", a.entriesHandler.Route)
+	r.With(a.sm.RequireAuth).Route("/", a.homeHandler.Route)
 
 	// a.workoutsExercisesHandler.Routes(r)
 
