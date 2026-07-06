@@ -26,22 +26,18 @@ func (h *EntriesHandler) Route(r chi.Router) {
 	r.Post("/", h.create)
 
 	r.Route("/{entry_id}", func(r chi.Router) {
-		r.Use(h.entryCtx())
+		r.Use(middleware.EntityCtx(func(r *http.Request) (db.Entry, error) {
+			id, _ := pathInt(r, "entry_id")
+			userID := h.sm.UserID(r.Context())
+			return h.queries.GetEntryByID(r.Context(), db.GetEntryByIDParams{
+				ID:     id,
+				UserID: userID,
+			})
+		}))
 		r.Get("/", ghttp.Adapt(h.show))
 		r.Get("/edit", ghttp.Adapt(h.edit))
 		r.Post("/", h.update)
 		r.Post("/delete", h.delete)
-	})
-}
-
-func (h *EntriesHandler) entryCtx() func(http.Handler) http.Handler {
-	return middleware.EntityCtx(func(r *http.Request) (db.Entry, error) {
-		id, _ := pathInt(r, "entry_id")
-		userID := h.sm.UserID(r.Context())
-		return h.queries.GetEntryByID(r.Context(), db.GetEntryByIDParams{
-			ID:     id,
-			UserID: userID,
-		})
 	})
 }
 

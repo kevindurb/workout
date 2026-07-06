@@ -36,22 +36,18 @@ func (h *ExercisesHandler) Route(r chi.Router) {
 	r.Post("/", h.create)
 
 	r.Route("/{exercise_id}", func(r chi.Router) {
-		r.Use(h.exerciseCtx())
+		r.Use(middleware.EntityCtx(func(r *http.Request) (db.Exercise, error) {
+			id, _ := pathInt(r, "exercise_id")
+			userID := h.sm.UserID(r.Context())
+			return h.queries.GetExerciseByID(r.Context(), db.GetExerciseByIDParams{
+				ID:     id,
+				UserID: userID,
+			})
+		}))
 		r.Get("/", ghttp.Adapt(h.show))
 		r.Get("/edit", ghttp.Adapt(h.edit))
 		r.Post("/", h.update)
 		r.Post("/delete", h.delete)
-	})
-}
-
-func (h *ExercisesHandler) exerciseCtx() func(http.Handler) http.Handler {
-	return middleware.EntityCtx(func(r *http.Request) (db.Exercise, error) {
-		id, _ := pathInt(r, "exercise_id")
-		userID := h.sm.UserID(r.Context())
-		return h.queries.GetExerciseByID(r.Context(), db.GetExerciseByIDParams{
-			ID:     id,
-			UserID: userID,
-		})
 	})
 }
 
