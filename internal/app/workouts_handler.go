@@ -17,8 +17,6 @@ import (
 	ghttp "maragu.dev/gomponents/http"
 )
 
-var workoutPaths = Paths{"workouts"}
-
 type createWorkoutBody struct {
 	Name string `form:"name,required"`
 }

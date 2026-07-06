@@ -1,4 +1,5 @@
 package routes
 
-type Routes struct {
-}
+var Entries entriesRoutes
+var Exercises exercisesRoutes
+var Workouts workoutsRoutes

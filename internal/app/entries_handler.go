@@ -8,17 +8,16 @@ import (
 	. "github.com/kevindurb/planner/internal/html"
 	ihttp "github.com/kevindurb/planner/internal/http"
 	"github.com/kevindurb/planner/internal/middleware"
+	"github.com/kevindurb/planner/internal/routes"
 
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
 	ghttp "maragu.dev/gomponents/http"
 )
 
-var entriesPaths = Paths{"entries"}
-
 type EntriesHandler struct {
-	queries *db.Queries
-	sm      *SessionManager
+	q  *db.Queries
+	sm *SessionManager
 }
 
 func (h *EntriesHandler) Route(r chi.Router) {
@@ -28,7 +27,7 @@ func (h *EntriesHandler) Route(r chi.Router) {
 
 	r.Route("/{entry_id}", func(r chi.Router) {
 		r.Use(middleware.EntityCtx(func(r *http.Request) (db.Entry, error) {
-			return h.queries.GetEntryByID(r.Context(), db.GetEntryByIDParams{
+			return h.q.GetEntryByID(r.Context(), db.GetEntryByIDParams{
 				ID:     ihttp.PathInt(r, "entry_id"),
 				UserID: h.sm.UserID(r.Context()),
 			})
@@ -48,7 +47,7 @@ func (h *EntriesHandler) show(w http.ResponseWriter, r *http.Request) (Node, err
 }
 
 func (h *EntriesHandler) list(w http.ResponseWriter, r *http.Request) (Node, error) {
-	entries, _ := h.queries.ListAllEntries(r.Context(), h.sm.UserID(r.Context()))
+	entries, _ := h.q.ListAllEntries(r.Context(), h.sm.UserID(r.Context()))
 	return Layout(
 		H1(Text("Entries")),
 		Map(entries, func(entry db.Entry) Node {
@@ -71,16 +70,16 @@ func (h *EntriesHandler) edit(w http.ResponseWriter, r *http.Request) (Node, err
 }
 
 func (h *EntriesHandler) create(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, entriesPaths.List(), http.StatusFound)
+	http.Redirect(w, r, routes.Entries.List(), http.StatusFound)
 }
 
 func (h *EntriesHandler) update(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, entriesPaths.List(), http.StatusFound)
+	http.Redirect(w, r, routes.Entries.List(), http.StatusFound)
 }
 
 func (h *EntriesHandler) delete(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
 	entry := middleware.FromContext[db.Entry](r.Context())
-	h.queries.DeleteEntryByID(r.Context(), db.DeleteEntryByIDParams{ID: entry.ID, UserID: userID})
+	h.q.DeleteEntryByID(r.Context(), db.DeleteEntryByIDParams{ID: entry.ID, UserID: userID})
 	http.Redirect(w, r, "/", http.StatusFound)
 }

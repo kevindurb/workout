@@ -9,13 +9,12 @@ import (
 	. "github.com/kevindurb/planner/internal/html"
 	ihttp "github.com/kevindurb/planner/internal/http"
 	"github.com/kevindurb/planner/internal/middleware"
+	"github.com/kevindurb/planner/internal/routes"
 
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
 	ghttp "maragu.dev/gomponents/http"
 )
-
-var exercisesPaths = Paths{"exercises"}
 
 type createExerciseBody struct {
 	Name string `form:"name,required"`
@@ -26,9 +25,9 @@ type updateExerciseBody struct {
 }
 
 type ExercisesHandler struct {
-	queries *db.Queries
-	sm      *SessionManager
-	fp      *formparser.FormParser
+	q  *db.Queries
+	sm *SessionManager
+	fp *formparser.FormParser
 }
 
 func (h *ExercisesHandler) Route(r chi.Router) {
@@ -38,7 +37,7 @@ func (h *ExercisesHandler) Route(r chi.Router) {
 
 	r.Route("/{exercise_id}", func(r chi.Router) {
 		r.Use(middleware.EntityCtx(func(r *http.Request) (db.Exercise, error) {
-			return h.queries.GetExerciseByID(r.Context(), db.GetExerciseByIDParams{
+			return h.q.GetExerciseByID(r.Context(), db.GetExerciseByIDParams{
 				ID:     ihttp.PathInt(r, "exercise_id"),
 				UserID: h.sm.UserID(r.Context()),
 			})
@@ -54,12 +53,12 @@ func (h *ExercisesHandler) show(w http.ResponseWriter, r *http.Request) (Node, e
 	exercise := middleware.FromContext[db.Exercise](r.Context())
 	return Layout(
 		H1(Text(exercise.Name)),
-		A(Href(exercisesPaths.Edit(exercise.ID)), Text("Edit")),
+		A(Href(routes.Exercises.Edit(exercise.ID)), Text("Edit")),
 	), nil
 }
 
 func (h *ExercisesHandler) list(w http.ResponseWriter, r *http.Request) (Node, error) {
-	exercises, _ := h.queries.ListAllExercises(r.Context(), h.sm.UserID(r.Context()))
+	exercises, _ := h.q.ListAllExercises(r.Context(), h.sm.UserID(r.Context()))
 	return Layout(
 		H1(Text("Exercises")),
 		Map(exercises, func(exercise db.Exercise) Node {
@@ -73,7 +72,7 @@ func (h *ExercisesHandler) new(w http.ResponseWriter, r *http.Request) (Node, er
 		H1(Text("New Exercise")),
 		Form(
 			Method("POST"),
-			Action("/exercises"),
+			Action(routes.Exercises.Create()),
 			Label(For("name"), Text("Name")),
 			Input(Type("text"), ID("name"), Name("name"), Required()),
 			Button(Type("submit"), Text("Create")),
@@ -87,7 +86,7 @@ func (h *ExercisesHandler) edit(w http.ResponseWriter, r *http.Request) (Node, e
 		H1(Text("Edit "+exercise.Name)),
 		Form(
 			Method("POST"),
-			Action(exercisesPaths.Show(exercise.ID)),
+			Action(routes.Exercises.Show(exercise.ID)),
 			Label(For("name"), Text("Name")),
 			Input(Type("text"), ID("name"), Name("name"), Value(exercise.Name), Required()),
 			Button(Type("submit"), Text("Save")),
@@ -103,12 +102,12 @@ func (h *ExercisesHandler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exercise, _ := h.queries.CreateExercise(r.Context(), db.CreateExerciseParams{
+	exercise, _ := h.q.CreateExercise(r.Context(), db.CreateExerciseParams{
 		Name:   data.Name,
 		UserID: userID,
 	})
 
-	http.Redirect(w, r, exercisesPaths.Show(exercise.ID), http.StatusFound)
+	http.Redirect(w, r, routes.Exercises.Show(exercise.ID), http.StatusFound)
 }
 
 func (h *ExercisesHandler) update(w http.ResponseWriter, r *http.Request) {
@@ -120,19 +119,19 @@ func (h *ExercisesHandler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.queries.UpdateExercise(r.Context(), db.UpdateExerciseParams{
+	h.q.UpdateExercise(r.Context(), db.UpdateExerciseParams{
 		ID:     exercise.ID,
 		UserID: userID,
 		Name:   data.Name,
 	})
 
-	http.Redirect(w, r, exercisesPaths.Show(exercise.ID), http.StatusFound)
+	http.Redirect(w, r, routes.Exercises.Show(exercise.ID), http.StatusFound)
 }
 
 func (h *ExercisesHandler) delete(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
 	exercise := middleware.FromContext[db.Exercise](r.Context())
-	h.queries.DeleteExerciseByID(r.Context(), db.DeleteExerciseByIDParams{
+	h.q.DeleteExerciseByID(r.Context(), db.DeleteExerciseByIDParams{
 		ID:     exercise.ID,
 		UserID: userID,
 	})

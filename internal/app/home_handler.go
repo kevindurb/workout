@@ -7,6 +7,7 @@ import (
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
+	"github.com/kevindurb/planner/internal/routes"
 
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
@@ -28,11 +29,11 @@ func (h *HomeHandler) show(w http.ResponseWriter, r *http.Request) (Node, error)
 	workouts, _ := h.q.ListAllWorkouts(r.Context(), userID)
 	return Layout(
 		H1(Text("Home")),
-		A(Href(workoutPaths.New()), Text("New Workout")),
-		A(Href(exercisesPaths.New()), Text("New Exercise")),
+		A(Href(routes.Workouts.New()), Text("New Workout")),
+		A(Href(routes.Exercises.New()), Text("New Exercise")),
 		Ul(
 			Map(workouts, func(workout db.Workout) Node {
-				return Li(A(Href(workoutPaths.Show(workout.ID)), Text(workout.Name)))
+				return Li(A(Href(routes.Workouts.Show(workout.ID)), Text(workout.Name)))
 			}),
 		),
 	), nil
