@@ -9,6 +9,7 @@ import (
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
+	ihttp "github.com/kevindurb/planner/internal/http"
 	"github.com/kevindurb/planner/internal/middleware"
 
 	. "maragu.dev/gomponents"
@@ -22,17 +23,19 @@ type WorkoutsExercisesHandler struct {
 	fp *formparser.FormParser
 }
 
+type createWorkoutExerciseBody struct {
+	ExerciseID int64
+}
+
 func (h *WorkoutsExercisesHandler) Route(r chi.Router) {
 	r.Get("/new", ghttp.Adapt(h.new))
 	r.Post("/", h.create)
 
 	r.Route("/{workout_exercise_id}", func(r chi.Router) {
 		r.Use(middleware.EntityCtx(func(r *http.Request) (db.WorkoutsExercise, error) {
-			id, _ := pathInt(r, "workout_exercise_id")
-			userID := h.sm.UserID(r.Context())
 			return h.q.GetWorkoutExerciseById(r.Context(), db.GetWorkoutExerciseByIdParams{
-				ID:     id,
-				UserID: userID,
+				ID:     ihttp.PathInt(r, "workout_exercise_id"),
+				UserID: h.sm.UserID(r.Context()),
 			})
 		}))
 		r.Post("/delete", h.delete)
@@ -74,11 +77,17 @@ func (h *WorkoutsExercisesHandler) new(w http.ResponseWriter, r *http.Request) (
 func (h *WorkoutsExercisesHandler) create(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
 	workout := middleware.FromContext[db.Workout](r.Context())
-	exercise := middleware.FromContext[db.Exercise](r.Context())
-	_, err := h.q.CreateWorkoutExercise(r.Context(), db.CreateWorkoutExerciseParams{
+	var data createWorkoutExerciseBody
+	err := h.fp.Parse(&data, r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	_, err = h.q.CreateWorkoutExercise(r.Context(), db.CreateWorkoutExerciseParams{
 		UserID:     userID,
 		WorkoutID:  workout.ID,
-		ExerciseID: exercise.ID,
+		ExerciseID: data.ExerciseID,
 	})
 	if err != nil {
 		log.Printf("Error creating workout_exercise: %v", err)
@@ -90,19 +99,10 @@ func (h *WorkoutsExercisesHandler) create(w http.ResponseWriter, r *http.Request
 }
 
 func (h *WorkoutsExercisesHandler) delete(w http.ResponseWriter, r *http.Request) {
-	id, _ := pathInt(r, "id")
 	userID := h.sm.UserID(r.Context())
-	workoutExercise, err := h.q.GetWorkoutExerciseById(r.Context(), db.GetWorkoutExerciseByIdParams{
-		ID:     id,
-		UserID: userID,
-	})
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
+	workoutExercise := middleware.FromContext[db.WorkoutsExercise](r.Context())
 	h.q.DeleteWorkoutExerciseByID(r.Context(), db.DeleteWorkoutExerciseByIDParams{
-		ID:     id,
+		ID:     workoutExercise.ID,
 		UserID: userID,
 	})
 	http.Redirect(w, r, fmt.Sprintf("/workouts/%d/exercises/edit", workoutExercise.WorkoutID), http.StatusFound)

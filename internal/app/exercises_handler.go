@@ -7,6 +7,7 @@ import (
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
+	ihttp "github.com/kevindurb/planner/internal/http"
 	"github.com/kevindurb/planner/internal/middleware"
 
 	. "maragu.dev/gomponents"
@@ -37,11 +38,9 @@ func (h *ExercisesHandler) Route(r chi.Router) {
 
 	r.Route("/{exercise_id}", func(r chi.Router) {
 		r.Use(middleware.EntityCtx(func(r *http.Request) (db.Exercise, error) {
-			id, _ := pathInt(r, "exercise_id")
-			userID := h.sm.UserID(r.Context())
 			return h.queries.GetExerciseByID(r.Context(), db.GetExerciseByIDParams{
-				ID:     id,
-				UserID: userID,
+				ID:     ihttp.PathInt(r, "exercise_id"),
+				UserID: h.sm.UserID(r.Context()),
 			})
 		}))
 		r.Get("/", ghttp.Adapt(h.show))
