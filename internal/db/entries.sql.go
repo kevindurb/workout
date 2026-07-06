@@ -41,10 +41,16 @@ func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry
 const deleteEntryByID = `-- name: DeleteEntryByID :exec
 DELETE FROM entries
 WHERE id = ?
+AND user_id = ?
 `
 
-func (q *Queries) DeleteEntryByID(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteEntryByID, id)
+type DeleteEntryByIDParams struct {
+	ID     int64
+	UserID int64
+}
+
+func (q *Queries) DeleteEntryByID(ctx context.Context, arg DeleteEntryByIDParams) error {
+	_, err := q.db.ExecContext(ctx, deleteEntryByID, arg.ID, arg.UserID)
 	return err
 }
 
@@ -52,10 +58,16 @@ const getEntryByID = `-- name: GetEntryByID :one
 SELECT id, user_id, workout_id, name, created_at, updated_at
 FROM entries
 WHERE id = ?
+AND user_id = ?
 `
 
-func (q *Queries) GetEntryByID(ctx context.Context, id int64) (Entry, error) {
-	row := q.db.QueryRowContext(ctx, getEntryByID, id)
+type GetEntryByIDParams struct {
+	ID     int64
+	UserID int64
+}
+
+func (q *Queries) GetEntryByID(ctx context.Context, arg GetEntryByIDParams) (Entry, error) {
+	row := q.db.QueryRowContext(ctx, getEntryByID, arg.ID, arg.UserID)
 	var i Entry
 	err := row.Scan(
 		&i.ID,
@@ -108,16 +120,18 @@ const updateEntry = `-- name: UpdateEntry :one
 UPDATE entries
 SET name = ?
 WHERE id = ?
+AND user_id = ?
 RETURNING id, user_id, workout_id, name, created_at, updated_at
 `
 
 type UpdateEntryParams struct {
-	Name string
-	ID   int64
+	Name   string
+	ID     int64
+	UserID int64
 }
 
 func (q *Queries) UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry, error) {
-	row := q.db.QueryRowContext(ctx, updateEntry, arg.Name, arg.ID)
+	row := q.db.QueryRowContext(ctx, updateEntry, arg.Name, arg.ID, arg.UserID)
 	var i Entry
 	err := row.Scan(
 		&i.ID,

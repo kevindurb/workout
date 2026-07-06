@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/kevindurb/planner/internal/db"
 	. "github.com/kevindurb/planner/internal/html"
+	"github.com/kevindurb/planner/internal/middleware"
 
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
@@ -24,7 +25,8 @@ func (h *EntriesHandler) Route(r chi.Router) {
 	r.Get("/new", ghttp.Adapt(h.new))
 	r.Post("/", h.create)
 
-	r.Route("/{id}", func(r chi.Router) {
+	r.Route("/{entry_id}", func(r chi.Router) {
+		r.Use(h.entryCtx())
 		r.Get("/", ghttp.Adapt(h.show))
 		r.Get("/edit", ghttp.Adapt(h.edit))
 		r.Post("/", h.update)
@@ -32,12 +34,19 @@ func (h *EntriesHandler) Route(r chi.Router) {
 	})
 }
 
+func (h *EntriesHandler) entryCtx() func(http.Handler) http.Handler {
+	return middleware.EntityCtx(func(r *http.Request) (db.Entry, error) {
+		id, _ := pathInt(r, "entry_id")
+		userID := h.sm.UserID(r.Context())
+		return h.queries.GetEntryByID(r.Context(), db.GetEntryByIDParams{
+			ID:     id,
+			UserID: userID,
+		})
+	})
+}
+
 func (h *EntriesHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
-	id, _ := pathInt(r, "id")
-	entry, err := h.queries.GetEntryByID(r.Context(), id)
-	if err != nil {
-		return nil, StatusCodeError{http.StatusNotFound}
-	}
+	entry := middleware.FromContext[db.Entry](r.Context())
 	return Layout(
 		H1(Text(entry.Name)),
 	), nil
@@ -60,11 +69,7 @@ func (h *EntriesHandler) new(w http.ResponseWriter, r *http.Request) (Node, erro
 }
 
 func (h *EntriesHandler) edit(w http.ResponseWriter, r *http.Request) (Node, error) {
-	id, _ := pathInt(r, "id")
-	entry, err := h.queries.GetEntryByID(r.Context(), id)
-	if err != nil {
-		return nil, StatusCodeError{http.StatusNotFound}
-	}
+	entry := middleware.FromContext[db.Entry](r.Context())
 	return Layout(
 		H1(Text("Edit " + entry.Name)),
 	), nil
@@ -79,7 +84,8 @@ func (h *EntriesHandler) update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *EntriesHandler) delete(w http.ResponseWriter, r *http.Request) {
-	id, _ := pathInt(r, "id")
-	h.queries.DeleteEntryByID(r.Context(), id)
+	userID := h.sm.UserID(r.Context())
+	entry := middleware.FromContext[db.Entry](r.Context())
+	h.queries.DeleteEntryByID(r.Context(), db.DeleteEntryByIDParams{ID: entry.ID, UserID: userID})
 	http.Redirect(w, r, "/", http.StatusFound)
 }

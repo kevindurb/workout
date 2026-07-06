@@ -7,6 +7,7 @@ import (
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
+	"github.com/kevindurb/planner/internal/middleware"
 
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
@@ -34,7 +35,8 @@ func (h *ExercisesHandler) Route(r chi.Router) {
 	r.Get("/new", ghttp.Adapt(h.new))
 	r.Post("/", h.create)
 
-	r.Route("/{id}", func(r chi.Router) {
+	r.Route("/{exercise_id}", func(r chi.Router) {
+		r.Use(h.exerciseCtx())
 		r.Get("/", ghttp.Adapt(h.show))
 		r.Get("/edit", ghttp.Adapt(h.edit))
 		r.Post("/", h.update)
@@ -42,16 +44,19 @@ func (h *ExercisesHandler) Route(r chi.Router) {
 	})
 }
 
-func (h *ExercisesHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
-	userID := h.sm.UserID(r.Context())
-	id, _ := pathInt(r, "id")
-	exercise, err := h.queries.GetExerciseByID(r.Context(), db.GetExerciseByIDParams{
-		ID:     id,
-		UserID: userID,
+func (h *ExercisesHandler) exerciseCtx() func(http.Handler) http.Handler {
+	return middleware.EntityCtx(func(r *http.Request) (db.Exercise, error) {
+		id, _ := pathInt(r, "exercise_id")
+		userID := h.sm.UserID(r.Context())
+		return h.queries.GetExerciseByID(r.Context(), db.GetExerciseByIDParams{
+			ID:     id,
+			UserID: userID,
+		})
 	})
-	if err != nil {
-		return nil, StatusCodeError{http.StatusNotFound}
-	}
+}
+
+func (h *ExercisesHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
+	exercise := middleware.FromContext[db.Exercise](r.Context())
 	return Layout(
 		H1(Text(exercise.Name)),
 		A(Href(exercisesPaths.Edit(exercise.ID)), Text("Edit")),
@@ -82,15 +87,7 @@ func (h *ExercisesHandler) new(w http.ResponseWriter, r *http.Request) (Node, er
 }
 
 func (h *ExercisesHandler) edit(w http.ResponseWriter, r *http.Request) (Node, error) {
-	userID := h.sm.UserID(r.Context())
-	id, _ := pathInt(r, "id")
-	exercise, err := h.queries.GetExerciseByID(r.Context(), db.GetExerciseByIDParams{
-		ID:     id,
-		UserID: userID,
-	})
-	if err != nil {
-		return nil, StatusCodeError{http.StatusNotFound}
-	}
+	exercise := middleware.FromContext[db.Exercise](r.Context())
 	return Layout(
 		H1(Text("Edit "+exercise.Name)),
 		Form(
@@ -121,7 +118,7 @@ func (h *ExercisesHandler) create(w http.ResponseWriter, r *http.Request) {
 
 func (h *ExercisesHandler) update(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
-	id, _ := pathInt(r, "id")
+	exercise := middleware.FromContext[db.Exercise](r.Context())
 	var data updateExerciseBody
 	if err := h.fp.Parse(&data, r); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -129,19 +126,19 @@ func (h *ExercisesHandler) update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.queries.UpdateExercise(r.Context(), db.UpdateExerciseParams{
-		ID:     id,
+		ID:     exercise.ID,
 		UserID: userID,
 		Name:   data.Name,
 	})
 
-	http.Redirect(w, r, exercisesPaths.Show(id), http.StatusFound)
+	http.Redirect(w, r, exercisesPaths.Show(exercise.ID), http.StatusFound)
 }
 
 func (h *ExercisesHandler) delete(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
-	id, _ := pathInt(r, "id")
+	exercise := middleware.FromContext[db.Exercise](r.Context())
 	h.queries.DeleteExerciseByID(r.Context(), db.DeleteExerciseByIDParams{
-		ID:     id,
+		ID:     exercise.ID,
 		UserID: userID,
 	})
 	http.Redirect(w, r, "/", http.StatusFound)

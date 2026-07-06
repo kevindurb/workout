@@ -6,7 +6,8 @@ WHERE user_id = ?;
 -- name: GetEntryByID :one
 SELECT *
 FROM entries
-WHERE id = ?;
+WHERE id = ?
+AND user_id = ?;
 
 -- name: CreateEntry :one
 INSERT INTO entries (
@@ -20,8 +21,10 @@ RETURNING *;
 UPDATE entries
 SET name = ?
 WHERE id = ?
+AND user_id = ?
 RETURNING *;
 
 -- name: DeleteEntryByID :exec
 DELETE FROM entries
-WHERE id = ?;
+WHERE id = ?
+AND user_id = ?;
