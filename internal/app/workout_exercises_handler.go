@@ -4,22 +4,17 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
+	"github.com/kevindurb/planner/internal/middleware"
 
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
 	ghttp "maragu.dev/gomponents/http"
 )
-
-type createWorkoutExerciseBody struct {
-	ExerciseID int64 `form:"exercise_id,required"`
-	WorkoutID  int64 `form:"workout_id,required"`
-}
 
 type WorkoutsExercisesHandler struct {
 	q  *db.Queries
@@ -28,29 +23,28 @@ type WorkoutsExercisesHandler struct {
 }
 
 func (h *WorkoutsExercisesHandler) Route(r chi.Router) {
+	r.Get("/new", ghttp.Adapt(h.new))
 	r.Post("/", h.create)
 
-	r.Route("/{id}", func(r chi.Router) {
-		r.Get("/edit", ghttp.Adapt(h.edit))
+	r.Route("/{workout_exercise_id}", func(r chi.Router) {
+		r.Use(middleware.EntityCtx(func(r *http.Request) (db.WorkoutsExercise, error) {
+			id, _ := pathInt(r, "workout_exercise_id")
+			userID := h.sm.UserID(r.Context())
+			return h.q.GetWorkoutExerciseById(r.Context(), db.GetWorkoutExerciseByIdParams{
+				ID:     id,
+				UserID: userID,
+			})
+		}))
 		r.Post("/delete", h.delete)
 	})
 }
 
-func (h *WorkoutsExercisesHandler) edit(w http.ResponseWriter, r *http.Request) (Node, error) {
-	workoutID, _ := pathInt(r, "workout_id")
+func (h *WorkoutsExercisesHandler) new(w http.ResponseWriter, r *http.Request) (Node, error) {
 	userID := h.sm.UserID(r.Context())
-	_, err := h.q.GetWorkoutByID(r.Context(), db.GetWorkoutByIDParams{
-		ID:     workoutID,
-		UserID: userID,
-	})
-	if err != nil {
-		log.Printf("Error getting workout(%d): %v", workoutID, err)
-		return nil, StatusCodeError{http.StatusBadRequest}
-	}
-
+	workout := middleware.FromContext[db.Workout](r.Context())
 	exercises, _ := h.q.ListAllExercises(r.Context(), userID)
 	workoutExercises, _ := h.q.ListExercisesByWorkoutId(r.Context(), db.ListExercisesByWorkoutIdParams{
-		WorkoutID: workoutID,
+		WorkoutID: workout.ID,
 		UserID:    userID,
 	})
 	return Layout(
@@ -60,7 +54,7 @@ func (h *WorkoutsExercisesHandler) edit(w http.ResponseWriter, r *http.Request) 
 		Map(workoutExercises, func(exercise db.ListExercisesByWorkoutIdRow) Node {
 			return Form(
 				Method("POST"),
-				Action(fmt.Sprintf("/workouts_exercises/%d/delete", exercise.WorkoutExerciseID)),
+				Action(fmt.Sprintf("/workouts/%d/exercises/%d/delete", workout.ID, exercise.ID)),
 				Label(Text(exercise.Name)),
 				Button(Type("submit"), Text("Remove")),
 			)
@@ -69,9 +63,7 @@ func (h *WorkoutsExercisesHandler) edit(w http.ResponseWriter, r *http.Request) 
 		Map(exercises, func(exercise db.Exercise) Node {
 			return Form(
 				Method("POST"),
-				Action("/workouts_exercises"),
-				Input(Type("hidden"), Name("workout_id"), Value(strconv.FormatInt(workoutID, 10))),
-				Input(Type("hidden"), Name("exercise_id"), Value(strconv.FormatInt(exercise.ID, 10))),
+				Action(fmt.Sprintf("/workouts/%d/exercises/%d", workout.ID, exercise.ID)),
 				Label(Text(exercise.Name)),
 				Button(Type("submit"), Text("Add")),
 			)
@@ -81,37 +73,12 @@ func (h *WorkoutsExercisesHandler) edit(w http.ResponseWriter, r *http.Request) 
 
 func (h *WorkoutsExercisesHandler) create(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
-	var data createWorkoutExerciseBody
-	if err := h.fp.Parse(&data, r); err != nil {
-		log.Printf("Error parsing body: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	_, err := h.q.GetWorkoutByID(r.Context(), db.GetWorkoutByIDParams{
-		ID:     data.WorkoutID,
-		UserID: userID,
-	})
-	if err != nil {
-		log.Printf("Error getting workout (%d): %v", data.WorkoutID, err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	_, err = h.q.GetExerciseByID(r.Context(), db.GetExerciseByIDParams{
-		ID:     data.ExerciseID,
-		UserID: userID,
-	})
-	if err != nil {
-		log.Printf("Error getting exercise (%d): %v", data.ExerciseID, err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	_, err = h.q.CreateWorkoutExercise(r.Context(), db.CreateWorkoutExerciseParams{
+	workout := middleware.FromContext[db.Workout](r.Context())
+	exercise := middleware.FromContext[db.Exercise](r.Context())
+	_, err := h.q.CreateWorkoutExercise(r.Context(), db.CreateWorkoutExerciseParams{
 		UserID:     userID,
-		WorkoutID:  data.WorkoutID,
-		ExerciseID: data.ExerciseID,
+		WorkoutID:  workout.ID,
+		ExerciseID: exercise.ID,
 	})
 	if err != nil {
 		log.Printf("Error creating workout_exercise: %v", err)
@@ -119,7 +86,7 @@ func (h *WorkoutsExercisesHandler) create(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/workouts/%d/exercises/edit", data.WorkoutID), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("/workouts/%d/exercises/new", workout.ID), http.StatusFound)
 }
 
 func (h *WorkoutsExercisesHandler) delete(w http.ResponseWriter, r *http.Request) {
