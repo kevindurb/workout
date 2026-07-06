@@ -5,22 +5,23 @@ import (
 	"net/http"
 
 	"github.com/alexedwards/scs/sqlite3store"
+	"github.com/go-chi/chi/v5"
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	"github.com/kevindurb/planner/static"
 )
 
 type App struct {
-	DB                *sql.DB
-	sm                *SessionManager
-	fp                *formparser.FormParser
-	queries           *db.Queries
-	home              *HomeHandler
-	workouts          *WorkoutsHandler
-	exercises         *ExercisesHandler
-	entries           *EntriesHandler
-	sessions          *SessionsHandler
-	workoutsExercises *WorkoutsExercisesHandler
+	db                       *sql.DB
+	sm                       *SessionManager
+	fp                       *formparser.FormParser
+	q                        *db.Queries
+	homeHandler              *HomeHandler
+	workoutsHandler          *WorkoutsHandler
+	exercisesHandler         *ExercisesHandler
+	entriesHandler           *EntriesHandler
+	sessionsHandler          *SessionsHandler
+	workoutsExercisesHandler *WorkoutsExercisesHandler
 }
 
 func New(conn *sql.DB) *App {
@@ -29,29 +30,29 @@ func New(conn *sql.DB) *App {
 	sm := NewSessionManager()
 	sm.Store = sqlite3store.New(conn)
 	return &App{
-		DB:                conn,
-		sm:                sm,
-		fp:                fp,
-		queries:           q,
-		home:              &HomeHandler{q, sm, fp},
-		workouts:          &WorkoutsHandler{q, sm, fp},
-		exercises:         &ExercisesHandler{q, sm, fp},
-		entries:           &EntriesHandler{q, sm},
-		sessions:          &SessionsHandler{q, sm, fp},
-		workoutsExercises: &WorkoutsExercisesHandler{q, sm, fp},
+		db:                       conn,
+		sm:                       sm,
+		fp:                       fp,
+		q:                        q,
+		homeHandler:              &HomeHandler{q, sm, fp},
+		workoutsHandler:          &WorkoutsHandler{q, sm, fp},
+		exercisesHandler:         &ExercisesHandler{q, sm, fp},
+		entriesHandler:           &EntriesHandler{q, sm},
+		sessionsHandler:          &SessionsHandler{q, sm, fp},
+		workoutsExercisesHandler: &WorkoutsExercisesHandler{q, sm, fp},
 	}
 }
 
 func (a *App) Routes() http.Handler {
-	mux := http.NewServeMux()
-	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Files))))
+	r := chi.NewRouter()
+	r.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Files))))
 
-	a.sessions.Routes(mux)
-	a.workouts.Routes(mux)
-	a.exercises.Routes(mux)
-	a.workoutsExercises.Routes(mux)
-	a.entries.Routes(mux)
-	a.home.Routes(mux)
+	// a.sessionsHandler.Routes(r)
+	// a.workoutsHandler.Routes(r)
+	// a.exercisesHandler.Routes(r)
+	// a.workoutsExercisesHandler.Routes(r)
+	// a.entriesHandler.Routes(r)
+	// a.homeHandler.Routes(r)
 
-	return a.sm.LoadAndSave(mux)
+	return a.sm.LoadAndSave(r)
 }

@@ -5,6 +5,7 @@ go 1.26.3
 require (
 	github.com/alexedwards/scs/sqlite3store v0.0.0-20251002162104-209de6e426de
 	github.com/alexedwards/scs/v2 v2.9.0
+	github.com/go-chi/chi/v5 v5.3.1
 	github.com/go-playground/form v3.1.4+incompatible
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/pressly/goose/v3 v3.27.2

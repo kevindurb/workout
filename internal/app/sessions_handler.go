@@ -20,9 +20,9 @@ type credsBody struct {
 }
 
 type SessionsHandler struct {
-	queries *db.Queries
-	sm      *SessionManager
-	fp      *formparser.FormParser
+	q  *db.Queries
+	sm *SessionManager
+	fp *formparser.FormParser
 }
 
 func (h *SessionsHandler) Routes(mux *http.ServeMux) {
@@ -74,7 +74,7 @@ func (h *SessionsHandler) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.queries.GetUserByEmail(r.Context(), data.Email)
+	user, err := h.q.GetUserByEmail(r.Context(), data.Email)
 	if err != nil {
 		log.Printf("Error getting user by email (%s): %v", data.Email, err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -106,7 +106,7 @@ func (h *SessionsHandler) signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.queries.CreateUser(r.Context(), db.CreateUserParams{
+	_, err = h.q.CreateUser(r.Context(), db.CreateUserParams{
 		Email: data.Email,
 		Hash:  hash,
 	})
