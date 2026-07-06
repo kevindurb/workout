@@ -20,8 +20,9 @@ type App struct {
 	workoutsHandler          *WorkoutsHandler
 	exercisesHandler         *ExercisesHandler
 	entriesHandler           *EntriesHandler
-	sessionsHandler          *SessionsHandler
 	workoutsExercisesHandler *WorkoutsExercisesHandler
+	loginHandler             *LoginHandler
+	signupHandler            *SignupHandler
 }
 
 func New(conn *sql.DB) *App {
@@ -38,21 +39,23 @@ func New(conn *sql.DB) *App {
 		workoutsHandler:          &WorkoutsHandler{q, sm, fp},
 		exercisesHandler:         &ExercisesHandler{q, sm, fp},
 		entriesHandler:           &EntriesHandler{q, sm},
-		sessionsHandler:          &SessionsHandler{q, sm, fp},
 		workoutsExercisesHandler: &WorkoutsExercisesHandler{q, sm, fp},
+		loginHandler:             &LoginHandler{q, sm, fp},
+		signupHandler:            &SignupHandler{q, sm, fp},
 	}
 }
 
 func (a *App) Routes() http.Handler {
 	r := chi.NewRouter()
 	r.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Files))))
+	r.Route("/workouts", a.workoutsHandler.Route)
+	r.Route("/login", a.loginHandler.Route)
+	r.Route("/signup", a.signupHandler.Route)
+	r.Route("/exercises", a.exercisesHandler.Route)
+	r.Route("/entries", a.entriesHandler.Route)
+	r.Route("/", a.homeHandler.Route)
 
-	// a.sessionsHandler.Routes(r)
-	// a.workoutsHandler.Routes(r)
-	// a.exercisesHandler.Routes(r)
 	// a.workoutsExercisesHandler.Routes(r)
-	// a.entriesHandler.Routes(r)
-	// a.homeHandler.Routes(r)
 
 	return a.sm.LoadAndSave(r)
 }

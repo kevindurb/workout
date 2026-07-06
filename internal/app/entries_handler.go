@@ -3,6 +3,7 @@ package app
 import (
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/kevindurb/planner/internal/db"
 	. "github.com/kevindurb/planner/internal/html"
 
@@ -18,16 +19,16 @@ type EntriesHandler struct {
 	sm      *SessionManager
 }
 
-func (h *EntriesHandler) Routes(mux *http.ServeMux) {
-	registerAuthRoutes(mux, h.sm, []Route{
-		{"GET /entries/{id}", ghttp.Adapt(h.show)},
-		{"GET /entries/{id}/edit", ghttp.Adapt(h.edit)},
-		{"GET /entries", ghttp.Adapt(h.list)},
-		{"GET /entries/new", ghttp.Adapt(h.new)},
+func (h *EntriesHandler) Route(r chi.Router) {
+	r.Get("/", ghttp.Adapt(h.list))
+	r.Get("/new", ghttp.Adapt(h.new))
+	r.Post("/", h.create)
 
-		{"POST /entries", http.HandlerFunc(h.create)},
-		{"POST /entries/{id}", http.HandlerFunc(h.update)},
-		{"POST /entries/{id}/delete", http.HandlerFunc(h.delete)},
+	r.Route("/{id}", func(r chi.Router) {
+		r.Get("/", ghttp.Adapt(h.show))
+		r.Get("/edit", ghttp.Adapt(h.edit))
+		r.Post("/", h.update)
+		r.Post("/delete", h.delete)
 	})
 }
 

@@ -3,6 +3,7 @@ package app
 import (
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
@@ -18,10 +19,8 @@ type HomeHandler struct {
 	fp *formparser.FormParser
 }
 
-func (h *HomeHandler) Routes(mux *http.ServeMux) {
-	registerAuthRoutes(mux, h.sm, []Route{
-		{"GET /", ghttp.Adapt(h.show)},
-	})
+func (h *HomeHandler) Route(r chi.Router) {
+	r.Get("/", ghttp.Adapt(h.show))
 }
 
 func (h *HomeHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {

@@ -3,6 +3,7 @@ package app
 import (
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
@@ -28,15 +29,16 @@ type ExercisesHandler struct {
 	fp      *formparser.FormParser
 }
 
-func (h *ExercisesHandler) Routes(mux *http.ServeMux) {
-	registerAuthRoutes(mux, h.sm, []Route{
-		{"GET /exercises/{id}", ghttp.Adapt(h.show)},
-		{"GET /exercises/{id}/edit", ghttp.Adapt(h.edit)},
-		{"GET /exercises", ghttp.Adapt(h.list)},
-		{"GET /exercises/new", ghttp.Adapt(h.new)},
-		{"POST /exercises", http.HandlerFunc(h.create)},
-		{"POST /exercises/{id}", http.HandlerFunc(h.update)},
-		{"POST /exercises/{id}/delete", http.HandlerFunc(h.delete)},
+func (h *ExercisesHandler) Route(r chi.Router) {
+	r.Get("/", ghttp.Adapt(h.list))
+	r.Get("/new", ghttp.Adapt(h.new))
+	r.Post("/", h.create)
+
+	r.Route("/{id}", func(r chi.Router) {
+		r.Get("/", ghttp.Adapt(h.show))
+		r.Get("/edit", ghttp.Adapt(h.edit))
+		r.Post("/", h.update)
+		r.Post("/delete", h.delete)
 	})
 }
 

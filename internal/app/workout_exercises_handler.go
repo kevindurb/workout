@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
@@ -26,11 +27,12 @@ type WorkoutsExercisesHandler struct {
 	fp *formparser.FormParser
 }
 
-func (h *WorkoutsExercisesHandler) Routes(mux *http.ServeMux) {
-	registerAuthRoutes(mux, h.sm, []Route{
-		{"GET /workouts/{workout_id}/exercises/edit", ghttp.Adapt(h.edit)},
-		{"POST /workouts_exercises", http.HandlerFunc(h.create)},
-		{"POST /workouts_exercises/{id}/delete", http.HandlerFunc(h.delete)},
+func (h *WorkoutsExercisesHandler) Route(r chi.Router) {
+	r.Post("/", h.create)
+
+	r.Route("/{id}", func(r chi.Router) {
+		r.Get("/edit", ghttp.Adapt(h.edit))
+		r.Post("/delete", h.delete)
 	})
 }
 
