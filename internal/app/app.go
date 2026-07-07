@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
+	"github.com/kevindurb/planner/internal/middleware"
 	"github.com/kevindurb/planner/internal/session"
 	"github.com/kevindurb/planner/static"
 )
@@ -48,6 +49,7 @@ func New(conn *sql.DB) *App {
 
 func (a *App) Routes() http.Handler {
 	r := chi.NewRouter()
+	r.Use(middleware.MethodOverride)
 	r.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Files))))
 	r.Route("/login", a.loginHandler.Route)
 	r.Route("/signup", a.signupHandler.Route)
