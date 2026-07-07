@@ -3,18 +3,15 @@ package exercises
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
-	ihttp "github.com/kevindurb/planner/internal/http"
 	"github.com/kevindurb/planner/internal/middleware"
 	"github.com/kevindurb/planner/internal/routes"
 	"github.com/kevindurb/planner/internal/session"
 
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
-	ghttp "maragu.dev/gomponents/http"
 )
 
 type createExerciseBody struct {
@@ -31,23 +28,12 @@ type Handler struct {
 	fp *formparser.FormParser
 }
 
-func (h *Handler) Routes(r chi.Router) {
-	r.Get("/", ghttp.Adapt(h.list))
-	r.Get("/new", ghttp.Adapt(h.new))
-	r.Post("/", h.create)
-
-	r.Route("/{exercise_id}", func(r chi.Router) {
-		r.Use(middleware.EntityCtx(func(r *http.Request) (db.Exercise, error) {
-			return h.q.GetExerciseByID(r.Context(), db.GetExerciseByIDParams{
-				ID:     ihttp.PathInt(r, "exercise_id"),
-				UserID: h.sm.UserID(r.Context()),
-			})
-		}))
-		r.Get("/", ghttp.Adapt(h.show))
-		r.Get("/edit", ghttp.Adapt(h.edit))
-		r.Post("/", h.update)
-		r.Post("/delete", h.delete)
-	})
+func NewHandler(
+	q *db.Queries,
+	sm *session.Manager,
+	fp *formparser.FormParser,
+) *Handler {
+	return &Handler{q, sm, fp}
 }
 
 func (h *Handler) show(w http.ResponseWriter, r *http.Request) (Node, error) {

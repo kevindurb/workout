@@ -3,7 +3,6 @@ package home
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
@@ -12,7 +11,6 @@ import (
 
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
-	ghttp "maragu.dev/gomponents/http"
 )
 
 type Handler struct {
@@ -21,8 +19,12 @@ type Handler struct {
 	fp *formparser.FormParser
 }
 
-func (h *Handler) Routes(r chi.Router) {
-	r.Get("/", ghttp.Adapt(h.show))
+func NewHandler(
+	q *db.Queries,
+	sm *session.Manager,
+	fp *formparser.FormParser,
+) *Handler {
+	return &Handler{q, sm, fp}
 }
 
 func (h *Handler) show(w http.ResponseWriter, r *http.Request) (Node, error) {

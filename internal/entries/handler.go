@@ -20,7 +20,11 @@ type Handler struct {
 	fp *formparser.FormParser
 }
 
-func NewHandler(q *db.Queries, sm *session.Manager, fp *formparser.FormParser) *Handler {
+func NewHandler(
+	q *db.Queries,
+	sm *session.Manager,
+	fp *formparser.FormParser,
+) *Handler {
 	return &Handler{q, sm, fp}
 }
 

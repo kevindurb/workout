@@ -24,15 +24,23 @@ type updateWorkoutBody struct {
 }
 
 type Handler struct {
-	queries *db.Queries
-	sm      *session.Manager
-	fp      *formparser.FormParser
+	q  *db.Queries
+	sm *session.Manager
+	fp *formparser.FormParser
+}
+
+func NewHandler(
+	q *db.Queries,
+	sm *session.Manager,
+	fp *formparser.FormParser,
+) *Handler {
+	return &Handler{q, sm, fp}
 }
 
 func (h *Handler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
 	userID := h.sm.UserID(r.Context())
 	workout := middleware.FromContext[db.Workout](r.Context())
-	exercises, _ := h.queries.ListExercisesByWorkoutId(r.Context(), db.ListExercisesByWorkoutIdParams{
+	exercises, _ := h.q.ListExercisesByWorkoutId(r.Context(), db.ListExercisesByWorkoutIdParams{
 		WorkoutID: workout.ID,
 		UserID:    userID,
 	})
@@ -49,7 +57,7 @@ func (h *Handler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
 }
 
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) (Node, error) {
-	workouts, _ := h.queries.ListAllWorkouts(r.Context(), h.sm.UserID(r.Context()))
+	workouts, _ := h.q.ListAllWorkouts(r.Context(), h.sm.UserID(r.Context()))
 	return Layout(
 		H1(Text("Workouts")),
 		Map(workouts, func(workout db.Workout) Node {
@@ -94,7 +102,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workout, err := h.queries.CreateWorkout(r.Context(), db.CreateWorkoutParams{
+	workout, err := h.q.CreateWorkout(r.Context(), db.CreateWorkoutParams{
 		UserID: userID,
 		Name:   data.Name,
 	})
@@ -118,7 +126,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.queries.UpdateWorkout(r.Context(), db.UpdateWorkoutParams{
+	h.q.UpdateWorkout(r.Context(), db.UpdateWorkoutParams{
 		ID:     workout.ID,
 		UserID: userID,
 		Name:   data.Name,
@@ -130,7 +138,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	workout := middleware.FromContext[db.Workout](r.Context())
 	userID := h.sm.UserID(r.Context())
-	h.queries.DeleteWorkoutByID(r.Context(), db.DeleteWorkoutByIDParams{
+	h.q.DeleteWorkoutByID(r.Context(), db.DeleteWorkoutByIDParams{
 		ID:     workout.ID,
 		UserID: userID,
 	})

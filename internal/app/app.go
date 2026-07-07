@@ -42,12 +42,12 @@ func New(conn *sql.DB) *App {
 		sm:               sm,
 		fp:               fp,
 		q:                q,
-		homeHandler:      &home.Handler{q, sm, fp},
-		workoutsHandler:  &workouts.Handler{q, sm, fp},
-		exercisesHandler: &exercises.Handler{q, sm, fp},
+		homeHandler:      home.NewHandler(q, sm, fp),
+		workoutsHandler:  workouts.NewHandler(q, sm, fp),
+		exercisesHandler: exercises.NewHandler(q, sm, fp),
 		entriesHandler:   entries.NewHandler(q, sm, fp),
-		loginHandler:     &login.Handler{q, sm, fp},
-		signupHandler:    &signup.Handler{q, sm, fp},
+		loginHandler:     login.NewHandler(q, sm, fp),
+		signupHandler:    signup.NewHandler(q, sm, fp),
 	}
 }
 

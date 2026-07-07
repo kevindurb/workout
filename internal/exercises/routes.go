@@ -1,4 +1,4 @@
-package workouts
+package exercises
 
 import (
 	"net/http"
@@ -16,10 +16,10 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Get("/new", ghttp.Adapt(h.new))
 	r.Post("/", h.create)
 
-	r.Route("/{workout_id}", func(r chi.Router) {
-		r.Use(middleware.EntityCtx(func(r *http.Request) (db.Workout, error) {
-			return h.q.GetWorkoutByID(r.Context(), db.GetWorkoutByIDParams{
-				ID:     ihttp.PathInt(r, "workout_id"),
+	r.Route("/{exercise_id}", func(r chi.Router) {
+		r.Use(middleware.EntityCtx(func(r *http.Request) (db.Exercise, error) {
+			return h.q.GetExerciseByID(r.Context(), db.GetExerciseByIDParams{
+				ID:     ihttp.PathInt(r, "exercise_id"),
 				UserID: h.sm.UserID(r.Context()),
 			})
 		}))
