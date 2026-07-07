@@ -9,7 +9,7 @@ import (
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
-	ihttp "github.com/kevindurb/planner/internal/http"
+	"github.com/kevindurb/planner/internal/httpx"
 	"github.com/kevindurb/planner/internal/middleware"
 	"github.com/kevindurb/planner/internal/session"
 
@@ -35,7 +35,7 @@ func (h *WorkoutsExercisesHandler) Route(r chi.Router) {
 	r.Route("/{workout_exercise_id}", func(r chi.Router) {
 		r.Use(middleware.EntityCtx(func(r *http.Request) (db.WorkoutsExercise, error) {
 			return h.q.GetWorkoutExerciseById(r.Context(), db.GetWorkoutExerciseByIdParams{
-				ID:     ihttp.PathInt(r, "workout_exercise_id"),
+				ID:     httpx.PathInt(r, "workout_exercise_id"),
 				UserID: h.sm.UserID(r.Context()),
 			})
 		}))

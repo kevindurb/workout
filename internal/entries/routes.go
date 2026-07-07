@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/kevindurb/planner/internal/db"
-	ihttp "github.com/kevindurb/planner/internal/http"
+	"github.com/kevindurb/planner/internal/httpx"
 	"github.com/kevindurb/planner/internal/middleware"
 
 	ghttp "maragu.dev/gomponents/http"
@@ -19,7 +19,7 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Route("/{entry_id}", func(r chi.Router) {
 		r.Use(middleware.EntityCtx(func(r *http.Request) (db.Entry, error) {
 			return h.q.GetEntryByID(r.Context(), db.GetEntryByIDParams{
-				ID:     ihttp.PathInt(r, "entry_id"),
+				ID:     httpx.PathInt(r, "entry_id"),
 				UserID: h.sm.UserID(r.Context()),
 			})
 		}))
