@@ -1,4 +1,4 @@
-package app
+package home
 
 import (
 	"net/http"
@@ -15,17 +15,17 @@ import (
 	ghttp "maragu.dev/gomponents/http"
 )
 
-type HomeHandler struct {
+type Handler struct {
 	q  *db.Queries
 	sm *session.Manager
 	fp *formparser.FormParser
 }
 
-func (h *HomeHandler) Route(r chi.Router) {
+func (h *Handler) Routes(r chi.Router) {
 	r.Get("/", ghttp.Adapt(h.show))
 }
 
-func (h *HomeHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
+func (h *Handler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
 	userID := h.sm.UserID(r.Context())
 	workouts, _ := h.q.ListAllWorkouts(r.Context(), userID)
 	return Layout(

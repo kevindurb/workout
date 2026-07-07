@@ -1,21 +1,18 @@
-package app
+package workouts
 
 import (
 	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
-	ihttp "github.com/kevindurb/planner/internal/http"
 	"github.com/kevindurb/planner/internal/middleware"
 	"github.com/kevindurb/planner/internal/session"
 
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
-	ghttp "maragu.dev/gomponents/http"
 )
 
 type createWorkoutBody struct {
@@ -26,35 +23,13 @@ type updateWorkoutBody struct {
 	Name string `form:"name,required"`
 }
 
-type WorkoutsHandler struct {
+type Handler struct {
 	queries *db.Queries
 	sm      *session.Manager
 	fp      *formparser.FormParser
 }
 
-func (h *WorkoutsHandler) Route(r chi.Router) {
-	workoutExercisesHandler := WorkoutsExercisesHandler{h.queries, h.sm, h.fp}
-	r.Get("/", ghttp.Adapt(h.list))
-	r.Get("/new", ghttp.Adapt(h.new))
-	r.Post("/", h.create)
-
-	r.Route("/{workout_id}", func(r chi.Router) {
-		r.Use(middleware.EntityCtx(func(r *http.Request) (db.Workout, error) {
-			return h.queries.GetWorkoutByID(r.Context(), db.GetWorkoutByIDParams{
-				ID:     ihttp.PathInt(r, "workout_id"),
-				UserID: h.sm.UserID(r.Context()),
-			})
-		}))
-		r.Get("/", ghttp.Adapt(h.show))
-		r.Get("/edit", ghttp.Adapt(h.edit))
-		r.Post("/", h.update)
-		r.Post("/delete", h.delete)
-
-		r.Route("/exercises", workoutExercisesHandler.Route)
-	})
-}
-
-func (h *WorkoutsHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
+func (h *Handler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
 	userID := h.sm.UserID(r.Context())
 	workout := middleware.FromContext[db.Workout](r.Context())
 	exercises, _ := h.queries.ListExercisesByWorkoutId(r.Context(), db.ListExercisesByWorkoutIdParams{
@@ -73,7 +48,7 @@ func (h *WorkoutsHandler) show(w http.ResponseWriter, r *http.Request) (Node, er
 	), nil
 }
 
-func (h *WorkoutsHandler) list(w http.ResponseWriter, r *http.Request) (Node, error) {
+func (h *Handler) list(w http.ResponseWriter, r *http.Request) (Node, error) {
 	workouts, _ := h.queries.ListAllWorkouts(r.Context(), h.sm.UserID(r.Context()))
 	return Layout(
 		H1(Text("Workouts")),
@@ -83,7 +58,7 @@ func (h *WorkoutsHandler) list(w http.ResponseWriter, r *http.Request) (Node, er
 	), nil
 }
 
-func (h *WorkoutsHandler) new(w http.ResponseWriter, r *http.Request) (Node, error) {
+func (h *Handler) new(w http.ResponseWriter, r *http.Request) (Node, error) {
 	return Layout(
 		H1(Text("New Workout")),
 		Form(
@@ -96,7 +71,7 @@ func (h *WorkoutsHandler) new(w http.ResponseWriter, r *http.Request) (Node, err
 	), nil
 }
 
-func (h *WorkoutsHandler) edit(w http.ResponseWriter, r *http.Request) (Node, error) {
+func (h *Handler) edit(w http.ResponseWriter, r *http.Request) (Node, error) {
 	workout := middleware.FromContext[db.Workout](r.Context())
 	return Layout(
 		H1(Text("Edit "+workout.Name)),
@@ -110,7 +85,7 @@ func (h *WorkoutsHandler) edit(w http.ResponseWriter, r *http.Request) (Node, er
 	), nil
 }
 
-func (h *WorkoutsHandler) create(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
 	var data createWorkoutBody
 	if err := h.fp.Parse(&data, r); err != nil {
@@ -133,7 +108,7 @@ func (h *WorkoutsHandler) create(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, fmt.Sprintf("/workouts/%d", workout.ID), http.StatusFound)
 }
 
-func (h *WorkoutsHandler) update(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	workout := middleware.FromContext[db.Workout](r.Context())
 	userID := h.sm.UserID(r.Context())
 	var data updateWorkoutBody
@@ -152,7 +127,7 @@ func (h *WorkoutsHandler) update(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, fmt.Sprintf("/workouts/%d", workout.ID), http.StatusFound)
 }
 
-func (h *WorkoutsHandler) delete(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	workout := middleware.FromContext[db.Workout](r.Context())
 	userID := h.sm.UserID(r.Context())
 	h.queries.DeleteWorkoutByID(r.Context(), db.DeleteWorkoutByIDParams{

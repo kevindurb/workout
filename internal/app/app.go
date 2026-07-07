@@ -7,24 +7,29 @@ import (
 	"github.com/alexedwards/scs/sqlite3store"
 	"github.com/go-chi/chi/v5"
 	"github.com/kevindurb/planner/internal/db"
+	"github.com/kevindurb/planner/internal/entries"
+	"github.com/kevindurb/planner/internal/exercises"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
+	"github.com/kevindurb/planner/internal/home"
+	"github.com/kevindurb/planner/internal/login"
 	"github.com/kevindurb/planner/internal/middleware"
 	"github.com/kevindurb/planner/internal/session"
+	"github.com/kevindurb/planner/internal/signup"
+	"github.com/kevindurb/planner/internal/workouts"
 	"github.com/kevindurb/planner/static"
 )
 
 type App struct {
-	db                       *sql.DB
-	sm                       *session.Manager
-	fp                       *formparser.FormParser
-	q                        *db.Queries
-	homeHandler              *HomeHandler
-	workoutsHandler          *WorkoutsHandler
-	exercisesHandler         *ExercisesHandler
-	entriesHandler           *EntriesHandler
-	workoutsExercisesHandler *WorkoutsExercisesHandler
-	loginHandler             *LoginHandler
-	signupHandler            *SignupHandler
+	db               *sql.DB
+	sm               *session.Manager
+	fp               *formparser.FormParser
+	q                *db.Queries
+	homeHandler      *home.Handler
+	workoutsHandler  *workouts.Handler
+	exercisesHandler *exercises.Handler
+	entriesHandler   *entries.Handler
+	loginHandler     *login.Handler
+	signupHandler    *signup.Handler
 }
 
 func New(conn *sql.DB) *App {
@@ -33,17 +38,16 @@ func New(conn *sql.DB) *App {
 	sm := session.New()
 	sm.Store = sqlite3store.New(conn)
 	return &App{
-		db:                       conn,
-		sm:                       sm,
-		fp:                       fp,
-		q:                        q,
-		homeHandler:              &HomeHandler{q, sm, fp},
-		workoutsHandler:          &WorkoutsHandler{q, sm, fp},
-		exercisesHandler:         &ExercisesHandler{q, sm, fp},
-		entriesHandler:           &EntriesHandler{q, sm},
-		workoutsExercisesHandler: &WorkoutsExercisesHandler{q, sm, fp},
-		loginHandler:             &LoginHandler{q, sm, fp},
-		signupHandler:            &SignupHandler{q, sm, fp},
+		db:               conn,
+		sm:               sm,
+		fp:               fp,
+		q:                q,
+		homeHandler:      &home.Handler{q, sm, fp},
+		workoutsHandler:  &workouts.Handler{q, sm, fp},
+		exercisesHandler: &exercises.Handler{q, sm, fp},
+		entriesHandler:   entries.NewHandler(q, sm, fp),
+		loginHandler:     &login.Handler{q, sm, fp},
+		signupHandler:    &signup.Handler{q, sm, fp},
 	}
 }
 
@@ -51,14 +55,12 @@ func (a *App) Routes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.MethodOverride)
 	r.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Files))))
-	r.Route("/login", a.loginHandler.Route)
-	r.Route("/signup", a.signupHandler.Route)
-	r.With(a.sm.RequireAuth).Route("/workouts", a.workoutsHandler.Route)
-	r.With(a.sm.RequireAuth).Route("/exercises", a.exercisesHandler.Route)
-	r.With(a.sm.RequireAuth).Route("/entries", a.entriesHandler.Route)
-	r.With(a.sm.RequireAuth).Route("/", a.homeHandler.Route)
-
-	// a.workoutsExercisesHandler.Routes(r)
+	r.Route("/login", a.loginHandler.Routes)
+	r.Route("/signup", a.signupHandler.Routes)
+	r.With(a.sm.RequireAuth).Route("/workouts", a.workoutsHandler.Routes)
+	r.With(a.sm.RequireAuth).Route("/exercises", a.exercisesHandler.Routes)
+	r.With(a.sm.RequireAuth).Route("/entries", a.entriesHandler.Routes)
+	r.With(a.sm.RequireAuth).Route("/", a.homeHandler.Routes)
 
 	return a.sm.LoadAndSave(r)
 }

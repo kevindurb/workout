@@ -1,4 +1,4 @@
-package app
+package exercises
 
 import (
 	"net/http"
@@ -25,13 +25,13 @@ type updateExerciseBody struct {
 	Name string `form:"name,required"`
 }
 
-type ExercisesHandler struct {
+type Handler struct {
 	q  *db.Queries
 	sm *session.Manager
 	fp *formparser.FormParser
 }
 
-func (h *ExercisesHandler) Route(r chi.Router) {
+func (h *Handler) Routes(r chi.Router) {
 	r.Get("/", ghttp.Adapt(h.list))
 	r.Get("/new", ghttp.Adapt(h.new))
 	r.Post("/", h.create)
@@ -50,7 +50,7 @@ func (h *ExercisesHandler) Route(r chi.Router) {
 	})
 }
 
-func (h *ExercisesHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
+func (h *Handler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
 	exercise := middleware.FromContext[db.Exercise](r.Context())
 	return Layout(
 		H1(Text(exercise.Name)),
@@ -58,7 +58,7 @@ func (h *ExercisesHandler) show(w http.ResponseWriter, r *http.Request) (Node, e
 	), nil
 }
 
-func (h *ExercisesHandler) list(w http.ResponseWriter, r *http.Request) (Node, error) {
+func (h *Handler) list(w http.ResponseWriter, r *http.Request) (Node, error) {
 	exercises, _ := h.q.ListAllExercises(r.Context(), h.sm.UserID(r.Context()))
 	return Layout(
 		H1(Text("Exercises")),
@@ -68,7 +68,7 @@ func (h *ExercisesHandler) list(w http.ResponseWriter, r *http.Request) (Node, e
 	), nil
 }
 
-func (h *ExercisesHandler) new(w http.ResponseWriter, r *http.Request) (Node, error) {
+func (h *Handler) new(w http.ResponseWriter, r *http.Request) (Node, error) {
 	return Layout(
 		H1(Text("New Exercise")),
 		Form(
@@ -81,7 +81,7 @@ func (h *ExercisesHandler) new(w http.ResponseWriter, r *http.Request) (Node, er
 	), nil
 }
 
-func (h *ExercisesHandler) edit(w http.ResponseWriter, r *http.Request) (Node, error) {
+func (h *Handler) edit(w http.ResponseWriter, r *http.Request) (Node, error) {
 	exercise := middleware.FromContext[db.Exercise](r.Context())
 	return Layout(
 		H1(Text("Edit "+exercise.Name)),
@@ -95,7 +95,7 @@ func (h *ExercisesHandler) edit(w http.ResponseWriter, r *http.Request) (Node, e
 	), nil
 }
 
-func (h *ExercisesHandler) create(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
 	var data createExerciseBody
 	if err := h.fp.Parse(&data, r); err != nil {
@@ -111,7 +111,7 @@ func (h *ExercisesHandler) create(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, routes.Exercises.Show(exercise.ID), http.StatusFound)
 }
 
-func (h *ExercisesHandler) update(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
 	exercise := middleware.FromContext[db.Exercise](r.Context())
 	var data updateExerciseBody
@@ -129,7 +129,7 @@ func (h *ExercisesHandler) update(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, routes.Exercises.Show(exercise.ID), http.StatusFound)
 }
 
-func (h *ExercisesHandler) delete(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
 	exercise := middleware.FromContext[db.Exercise](r.Context())
 	h.q.DeleteExerciseByID(r.Context(), db.DeleteExerciseByIDParams{

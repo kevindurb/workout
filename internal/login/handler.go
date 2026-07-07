@@ -1,4 +1,4 @@
-package app
+package login
 
 import (
 	"log"
@@ -16,61 +16,59 @@ import (
 	ghttp "maragu.dev/gomponents/http"
 )
 
-type signupBody struct {
+type loginBody struct {
 	Email    string `form:"email,required" validate:"email"`
 	Password string `form:"password,required"`
 }
 
-type SignupHandler struct {
+type Handler struct {
 	q  *db.Queries
 	sm *session.Manager
 	fp *formparser.FormParser
 }
 
-func (h *SignupHandler) Route(r chi.Router) {
+func (h *Handler) Routes(r chi.Router) {
 	r.Get("/", ghttp.Adapt(h.show))
-	r.Post("/", h.signup)
+	r.Post("/", h.login)
 }
 
-func (h *SignupHandler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
+func (h *Handler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
 	return Layout(
-		H1(Text("Signup")),
+		H1(Text("Login")),
 		Form(
 			Method("POST"),
-			Action("/signup"),
+			Action("/login"),
 			Label(For("email"), Text("Email")),
 			Input(Type("email"), ID("email"), Name("email"), Required()),
 			Label(For("password"), Text("Password")),
 			Input(Type("password"), ID("password"), Name("password"), Required()),
-			Button(Type("submit"), Text("Signup")),
-			A(Href("/login"), Text("Login")),
+			Button(Type("submit"), Text("Login")),
+			A(Href("/signup"), Text("Signup")),
 		),
 	), nil
 }
 
-func (h *SignupHandler) signup(w http.ResponseWriter, r *http.Request) {
-	var data signupBody
+func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
+	var data loginBody
 	if err := h.fp.Parse(&data, r); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
+	user, err := h.q.GetUserByEmail(r.Context(), data.Email)
 	if err != nil {
-		log.Printf("Error hashing password: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	_, err = h.q.CreateUser(r.Context(), db.CreateUserParams{
-		Email: data.Email,
-		Hash:  hash,
-	})
-	if err != nil {
-		log.Printf("Error creating user: %v", err)
+		log.Printf("Error getting user by email (%s): %v", data.Email, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	http.Redirect(w, r, "/login", http.StatusFound)
+	if err = bcrypt.CompareHashAndPassword(user.Hash, []byte(data.Password)); err != nil {
+		log.Printf("Error comparing password (%s) for user (%s): %v", data.Password, data.Email, err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	h.sm.SetUserID(r.Context(), user.ID)
+
+	http.Redirect(w, r, "/", http.StatusFound)
 }
