@@ -8,6 +8,7 @@ import (
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
 	"github.com/kevindurb/planner/internal/routes"
+	"github.com/kevindurb/planner/internal/session"
 
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
@@ -16,7 +17,7 @@ import (
 
 type HomeHandler struct {
 	q  *db.Queries
-	sm *SessionManager
+	sm *session.Manager
 	fp *formparser.FormParser
 }
 

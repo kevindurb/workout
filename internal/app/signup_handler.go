@@ -8,6 +8,7 @@ import (
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
+	"github.com/kevindurb/planner/internal/session"
 	"golang.org/x/crypto/bcrypt"
 
 	. "maragu.dev/gomponents"
@@ -22,7 +23,7 @@ type signupBody struct {
 
 type SignupHandler struct {
 	q  *db.Queries
-	sm *SessionManager
+	sm *session.Manager
 	fp *formparser.FormParser
 }
 

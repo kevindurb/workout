@@ -11,6 +11,7 @@ import (
 	. "github.com/kevindurb/planner/internal/html"
 	ihttp "github.com/kevindurb/planner/internal/http"
 	"github.com/kevindurb/planner/internal/middleware"
+	"github.com/kevindurb/planner/internal/session"
 
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
@@ -27,7 +28,7 @@ type updateWorkoutBody struct {
 
 type WorkoutsHandler struct {
 	queries *db.Queries
-	sm      *SessionManager
+	sm      *session.Manager
 	fp      *formparser.FormParser
 }
 

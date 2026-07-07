@@ -10,6 +10,7 @@ import (
 	ihttp "github.com/kevindurb/planner/internal/http"
 	"github.com/kevindurb/planner/internal/middleware"
 	"github.com/kevindurb/planner/internal/routes"
+	"github.com/kevindurb/planner/internal/session"
 
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
@@ -26,7 +27,7 @@ type updateExerciseBody struct {
 
 type ExercisesHandler struct {
 	q  *db.Queries
-	sm *SessionManager
+	sm *session.Manager
 	fp *formparser.FormParser
 }
 

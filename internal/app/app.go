@@ -8,12 +8,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/kevindurb/planner/internal/db"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
+	"github.com/kevindurb/planner/internal/session"
 	"github.com/kevindurb/planner/static"
 )
 
 type App struct {
 	db                       *sql.DB
-	sm                       *SessionManager
+	sm                       *session.Manager
 	fp                       *formparser.FormParser
 	q                        *db.Queries
 	homeHandler              *HomeHandler
@@ -28,7 +29,7 @@ type App struct {
 func New(conn *sql.DB) *App {
 	q := db.New(conn)
 	fp := formparser.New()
-	sm := NewSessionManager()
+	sm := session.New()
 	sm.Store = sqlite3store.New(conn)
 	return &App{
 		db:                       conn,

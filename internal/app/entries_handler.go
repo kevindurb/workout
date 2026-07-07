@@ -9,6 +9,7 @@ import (
 	ihttp "github.com/kevindurb/planner/internal/http"
 	"github.com/kevindurb/planner/internal/middleware"
 	"github.com/kevindurb/planner/internal/routes"
+	"github.com/kevindurb/planner/internal/session"
 
 	. "maragu.dev/gomponents"
 	. "maragu.dev/gomponents/html"
@@ -17,7 +18,7 @@ import (
 
 type EntriesHandler struct {
 	q  *db.Queries
-	sm *SessionManager
+	sm *session.Manager
 }
 
 func (h *EntriesHandler) Route(r chi.Router) {
