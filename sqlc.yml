@@ -6,5 +6,5 @@ sql:
     schema: internal/database/migrations/
     gen:
       go:
-        package: db
-        out: internal/db
+        package: sqlcgen
+        out: internal/database/sqlcgen

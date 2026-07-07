@@ -3,7 +3,7 @@ package home
 import (
 	"net/http"
 
-	"github.com/kevindurb/planner/internal/db"
+	"github.com/kevindurb/planner/internal/database/sqlcgen"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
 	"github.com/kevindurb/planner/internal/routes"
@@ -14,13 +14,13 @@ import (
 )
 
 type Handler struct {
-	q  *db.Queries
+	q  *sqlcgen.Queries
 	sm *session.Manager
 	fp *formparser.FormParser
 }
 
 func NewHandler(
-	q *db.Queries,
+	q *sqlcgen.Queries,
 	sm *session.Manager,
 	fp *formparser.FormParser,
 ) *Handler {
@@ -35,7 +35,7 @@ func (h *Handler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
 		A(Href(routes.Workouts.New()), Text("New Workout")),
 		A(Href(routes.Exercises.New()), Text("New Exercise")),
 		Ul(
-			Map(workouts, func(workout db.Workout) Node {
+			Map(workouts, func(workout sqlcgen.Workout) Node {
 				return Li(A(Href(routes.Workouts.Show(workout.ID)), Text(workout.Name)))
 			}),
 		),

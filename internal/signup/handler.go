@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/kevindurb/planner/internal/db"
+	"github.com/kevindurb/planner/internal/database/sqlcgen"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
 	"github.com/kevindurb/planner/internal/session"
@@ -20,13 +20,13 @@ type signupBody struct {
 }
 
 type Handler struct {
-	q  *db.Queries
+	q  *sqlcgen.Queries
 	sm *session.Manager
 	fp *formparser.FormParser
 }
 
 func NewHandler(
-	q *db.Queries,
+	q *sqlcgen.Queries,
 	sm *session.Manager,
 	fp *formparser.FormParser,
 ) *Handler {
@@ -63,7 +63,7 @@ func (h *Handler) signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.q.CreateUser(r.Context(), db.CreateUserParams{
+	_, err = h.q.CreateUser(r.Context(), sqlcgen.CreateUserParams{
 		Email: data.Email,
 		Hash:  hash,
 	})

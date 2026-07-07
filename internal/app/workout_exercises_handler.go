@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/kevindurb/planner/internal/db"
+	"github.com/kevindurb/planner/internal/database/sqlcgen"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
 	"github.com/kevindurb/planner/internal/httpx"
@@ -19,7 +19,7 @@ import (
 )
 
 type WorkoutsExercisesHandler struct {
-	q  *db.Queries
+	q  *sqlcgen.Queries
 	sm *session.Manager
 	fp *formparser.FormParser
 }
@@ -33,8 +33,8 @@ func (h *WorkoutsExercisesHandler) Route(r chi.Router) {
 	r.Post("/", h.create)
 
 	r.Route("/{workout_exercise_id}", func(r chi.Router) {
-		r.Use(middleware.EntityCtx(func(r *http.Request) (db.WorkoutsExercise, error) {
-			return h.q.GetWorkoutExerciseById(r.Context(), db.GetWorkoutExerciseByIdParams{
+		r.Use(middleware.EntityCtx(func(r *http.Request) (sqlcgen.WorkoutsExercise, error) {
+			return h.q.GetWorkoutExerciseById(r.Context(), sqlcgen.GetWorkoutExerciseByIdParams{
 				ID:     httpx.PathInt(r, "workout_exercise_id"),
 				UserID: h.sm.UserID(r.Context()),
 			})
@@ -45,9 +45,9 @@ func (h *WorkoutsExercisesHandler) Route(r chi.Router) {
 
 func (h *WorkoutsExercisesHandler) new(w http.ResponseWriter, r *http.Request) (Node, error) {
 	userID := h.sm.UserID(r.Context())
-	workout := middleware.FromContext[db.Workout](r.Context())
+	workout := middleware.FromContext[sqlcgen.Workout](r.Context())
 	exercises, _ := h.q.ListAllExercises(r.Context(), userID)
-	workoutExercises, _ := h.q.ListExercisesByWorkoutId(r.Context(), db.ListExercisesByWorkoutIdParams{
+	workoutExercises, _ := h.q.ListExercisesByWorkoutId(r.Context(), sqlcgen.ListExercisesByWorkoutIdParams{
 		WorkoutID: workout.ID,
 		UserID:    userID,
 	})
@@ -55,7 +55,7 @@ func (h *WorkoutsExercisesHandler) new(w http.ResponseWriter, r *http.Request) (
 		H1(Text("Choose Exercise")),
 		A(Href("/exercises/new"), Text("Create Exercise")),
 		H2(Text("Existing")),
-		Map(workoutExercises, func(exercise db.ListExercisesByWorkoutIdRow) Node {
+		Map(workoutExercises, func(exercise sqlcgen.ListExercisesByWorkoutIdRow) Node {
 			return Form(
 				Method("POST"),
 				Action(fmt.Sprintf("/workouts/%d/exercises/%d/delete", workout.ID, exercise.ID)),
@@ -64,7 +64,7 @@ func (h *WorkoutsExercisesHandler) new(w http.ResponseWriter, r *http.Request) (
 			)
 		}),
 		H2(Text("Ones to add")),
-		Map(exercises, func(exercise db.Exercise) Node {
+		Map(exercises, func(exercise sqlcgen.Exercise) Node {
 			return Form(
 				Method("POST"),
 				Action(fmt.Sprintf("/workouts/%d/exercises/%d", workout.ID, exercise.ID)),
@@ -77,7 +77,7 @@ func (h *WorkoutsExercisesHandler) new(w http.ResponseWriter, r *http.Request) (
 
 func (h *WorkoutsExercisesHandler) create(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
-	workout := middleware.FromContext[db.Workout](r.Context())
+	workout := middleware.FromContext[sqlcgen.Workout](r.Context())
 	var data createWorkoutExerciseBody
 	err := h.fp.Parse(&data, r)
 	if err != nil {
@@ -85,7 +85,7 @@ func (h *WorkoutsExercisesHandler) create(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	_, err = h.q.CreateWorkoutExercise(r.Context(), db.CreateWorkoutExerciseParams{
+	_, err = h.q.CreateWorkoutExercise(r.Context(), sqlcgen.CreateWorkoutExerciseParams{
 		UserID:     userID,
 		WorkoutID:  workout.ID,
 		ExerciseID: data.ExerciseID,
@@ -101,8 +101,8 @@ func (h *WorkoutsExercisesHandler) create(w http.ResponseWriter, r *http.Request
 
 func (h *WorkoutsExercisesHandler) delete(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
-	workoutExercise := middleware.FromContext[db.WorkoutsExercise](r.Context())
-	h.q.DeleteWorkoutExerciseByID(r.Context(), db.DeleteWorkoutExerciseByIDParams{
+	workoutExercise := middleware.FromContext[sqlcgen.WorkoutsExercise](r.Context())
+	h.q.DeleteWorkoutExerciseByID(r.Context(), sqlcgen.DeleteWorkoutExerciseByIDParams{
 		ID:     workoutExercise.ID,
 		UserID: userID,
 	})

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/kevindurb/planner/internal/db"
+	"github.com/kevindurb/planner/internal/database/sqlcgen"
 	"github.com/kevindurb/planner/internal/httpx"
 	"github.com/kevindurb/planner/internal/middleware"
 
@@ -17,8 +17,8 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Post("/", h.create)
 
 	r.Route("/{entry_id}", func(r chi.Router) {
-		r.Use(middleware.EntityCtx(func(r *http.Request) (db.Entry, error) {
-			return h.q.GetEntryByID(r.Context(), db.GetEntryByIDParams{
+		r.Use(middleware.EntityCtx(func(r *http.Request) (sqlcgen.Entry, error) {
+			return h.q.GetEntryByID(r.Context(), sqlcgen.GetEntryByIDParams{
 				ID:     httpx.PathInt(r, "entry_id"),
 				UserID: h.sm.UserID(r.Context()),
 			})

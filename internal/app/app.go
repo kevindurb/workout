@@ -6,7 +6,7 @@ import (
 
 	"github.com/alexedwards/scs/sqlite3store"
 	"github.com/go-chi/chi/v5"
-	"github.com/kevindurb/planner/internal/db"
+	"github.com/kevindurb/planner/internal/database/sqlcgen"
 	"github.com/kevindurb/planner/internal/entries"
 	"github.com/kevindurb/planner/internal/exercises"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
@@ -23,7 +23,7 @@ type App struct {
 	db               *sql.DB
 	sm               *session.Manager
 	fp               *formparser.FormParser
-	q                *db.Queries
+	q                *sqlcgen.Queries
 	homeHandler      *home.Handler
 	workoutsHandler  *workouts.Handler
 	exercisesHandler *exercises.Handler
@@ -33,7 +33,7 @@ type App struct {
 }
 
 func New(conn *sql.DB) *App {
-	q := db.New(conn)
+	q := sqlcgen.New(conn)
 	fp := formparser.New()
 	sm := session.New()
 	sm.Store = sqlite3store.New(conn)

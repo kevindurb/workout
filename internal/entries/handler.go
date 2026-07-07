@@ -3,7 +3,7 @@ package entries
 import (
 	"net/http"
 
-	"github.com/kevindurb/planner/internal/db"
+	"github.com/kevindurb/planner/internal/database/sqlcgen"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
 	"github.com/kevindurb/planner/internal/middleware"
@@ -15,13 +15,13 @@ import (
 )
 
 type Handler struct {
-	q  *db.Queries
+	q  *sqlcgen.Queries
 	sm *session.Manager
 	fp *formparser.FormParser
 }
 
 func NewHandler(
-	q *db.Queries,
+	q *sqlcgen.Queries,
 	sm *session.Manager,
 	fp *formparser.FormParser,
 ) *Handler {
@@ -29,7 +29,7 @@ func NewHandler(
 }
 
 func (h *Handler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
-	entry := middleware.FromContext[db.Entry](r.Context())
+	entry := middleware.FromContext[sqlcgen.Entry](r.Context())
 	return Layout(
 		H1(Text(entry.Name)),
 	), nil
@@ -39,7 +39,7 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) (Node, error) {
 	entries, _ := h.q.ListAllEntries(r.Context(), h.sm.UserID(r.Context()))
 	return Layout(
 		H1(Text("Entries")),
-		Map(entries, func(entry db.Entry) Node {
+		Map(entries, func(entry sqlcgen.Entry) Node {
 			return P(Text(entry.Name))
 		}),
 	), nil
@@ -52,7 +52,7 @@ func (h *Handler) new(w http.ResponseWriter, r *http.Request) (Node, error) {
 }
 
 func (h *Handler) edit(w http.ResponseWriter, r *http.Request) (Node, error) {
-	entry := middleware.FromContext[db.Entry](r.Context())
+	entry := middleware.FromContext[sqlcgen.Entry](r.Context())
 	return Layout(
 		H1(Text("Edit " + entry.Name)),
 	), nil
@@ -68,7 +68,7 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
-	entry := middleware.FromContext[db.Entry](r.Context())
-	h.q.DeleteEntryByID(r.Context(), db.DeleteEntryByIDParams{ID: entry.ID, UserID: userID})
+	entry := middleware.FromContext[sqlcgen.Entry](r.Context())
+	h.q.DeleteEntryByID(r.Context(), sqlcgen.DeleteEntryByIDParams{ID: entry.ID, UserID: userID})
 	http.Redirect(w, r, "/", http.StatusFound)
 }

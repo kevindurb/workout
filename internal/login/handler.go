@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/kevindurb/planner/internal/db"
+	"github.com/kevindurb/planner/internal/database/sqlcgen"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
 	"github.com/kevindurb/planner/internal/session"
@@ -20,13 +20,13 @@ type loginBody struct {
 }
 
 type Handler struct {
-	q  *db.Queries
+	q  *sqlcgen.Queries
 	sm *session.Manager
 	fp *formparser.FormParser
 }
 
 func NewHandler(
-	q *db.Queries,
+	q *sqlcgen.Queries,
 	sm *session.Manager,
 	fp *formparser.FormParser,
 ) *Handler {

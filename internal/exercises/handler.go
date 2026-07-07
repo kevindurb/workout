@@ -3,7 +3,7 @@ package exercises
 import (
 	"net/http"
 
-	"github.com/kevindurb/planner/internal/db"
+	"github.com/kevindurb/planner/internal/database/sqlcgen"
 	formparser "github.com/kevindurb/planner/internal/form_parser"
 	. "github.com/kevindurb/planner/internal/html"
 	"github.com/kevindurb/planner/internal/middleware"
@@ -23,13 +23,13 @@ type updateExerciseBody struct {
 }
 
 type Handler struct {
-	q  *db.Queries
+	q  *sqlcgen.Queries
 	sm *session.Manager
 	fp *formparser.FormParser
 }
 
 func NewHandler(
-	q *db.Queries,
+	q *sqlcgen.Queries,
 	sm *session.Manager,
 	fp *formparser.FormParser,
 ) *Handler {
@@ -37,7 +37,7 @@ func NewHandler(
 }
 
 func (h *Handler) show(w http.ResponseWriter, r *http.Request) (Node, error) {
-	exercise := middleware.FromContext[db.Exercise](r.Context())
+	exercise := middleware.FromContext[sqlcgen.Exercise](r.Context())
 	return Layout(
 		H1(Text(exercise.Name)),
 		A(Href(routes.Exercises.Edit(exercise.ID)), Text("Edit")),
@@ -48,7 +48,7 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) (Node, error) {
 	exercises, _ := h.q.ListAllExercises(r.Context(), h.sm.UserID(r.Context()))
 	return Layout(
 		H1(Text("Exercises")),
-		Map(exercises, func(exercise db.Exercise) Node {
+		Map(exercises, func(exercise sqlcgen.Exercise) Node {
 			return P(Text(exercise.Name))
 		}),
 	), nil
@@ -68,7 +68,7 @@ func (h *Handler) new(w http.ResponseWriter, r *http.Request) (Node, error) {
 }
 
 func (h *Handler) edit(w http.ResponseWriter, r *http.Request) (Node, error) {
-	exercise := middleware.FromContext[db.Exercise](r.Context())
+	exercise := middleware.FromContext[sqlcgen.Exercise](r.Context())
 	return Layout(
 		H1(Text("Edit "+exercise.Name)),
 		Form(
@@ -89,7 +89,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exercise, _ := h.q.CreateExercise(r.Context(), db.CreateExerciseParams{
+	exercise, _ := h.q.CreateExercise(r.Context(), sqlcgen.CreateExerciseParams{
 		Name:   data.Name,
 		UserID: userID,
 	})
@@ -99,14 +99,14 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
-	exercise := middleware.FromContext[db.Exercise](r.Context())
+	exercise := middleware.FromContext[sqlcgen.Exercise](r.Context())
 	var data updateExerciseBody
 	if err := h.fp.Parse(&data, r); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	h.q.UpdateExercise(r.Context(), db.UpdateExerciseParams{
+	h.q.UpdateExercise(r.Context(), sqlcgen.UpdateExerciseParams{
 		ID:     exercise.ID,
 		UserID: userID,
 		Name:   data.Name,
@@ -117,8 +117,8 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	userID := h.sm.UserID(r.Context())
-	exercise := middleware.FromContext[db.Exercise](r.Context())
-	h.q.DeleteExerciseByID(r.Context(), db.DeleteExerciseByIDParams{
+	exercise := middleware.FromContext[sqlcgen.Exercise](r.Context())
+	h.q.DeleteExerciseByID(r.Context(), sqlcgen.DeleteExerciseByIDParams{
 		ID:     exercise.ID,
 		UserID: userID,
 	})
